@@ -29,7 +29,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
                 )
             }
 
-            Result.success(totalSettingList)
+            Result.success(totalSettingList.sortedBy { it.menuId })
         } catch (e: Exception) {
             Result.failure(e)
         }

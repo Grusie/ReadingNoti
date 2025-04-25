@@ -1,6 +1,5 @@
 package com.grusie.presentation.ui.setting
 
-import android.widget.Space
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,19 +31,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.grusie.domain.data.DomainTotalSettingDto
+import com.grusie.presentation.R
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.common.CircleProgressBar
+import com.grusie.presentation.ui.common.CommonTitleBar
 
 @Composable
 fun SettingScreen(
@@ -55,6 +56,7 @@ fun SettingScreen(
     }
 
     val uiState = viewModel.uiState.collectAsState().value
+    val context = LocalContext.current
     var totalSettingList by remember { mutableStateOf(listOf<UiTotalSettingDto>()) }
 
     LaunchedEffect(Unit) {
@@ -76,15 +78,27 @@ fun SettingScreen(
         }
     }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            CommonTitleBar(
+                title = context.getString(R.string.title_setting),
+                navController = navController
+            )
+        }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
             LazyColumn() {
                 items(totalSettingList) { settingItem ->
                     SettingListCard(settingItem)
-                    Spacer(
-                        modifier = Modifier
-                            .height(8.dp)
-                            .fillMaxWidth()
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                        thickness = 1.dp,
                     )
                 }
             }
@@ -108,25 +122,32 @@ fun SettingListCard(totalSettingData: UiTotalSettingDto) {
     if (totalSettingData.isVisible) {
         Box(
             modifier = Modifier
-                .background(Color.White, shape = RoundedCornerShape(8.dp))
-                .padding(vertical = 16.dp, horizontal = 8.dp)
+                .padding(vertical = 8.dp, horizontal = 12.dp)
                 .defaultMinSize(minHeight = 70.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.CenterStart
         ) {
             Row(
-                Modifier
-                    .align(Alignment.Center)) {
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp)
+            ) {
                 Icon(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     painter = painterResource(settingMenu.drawableResId),
-                    contentDescription = "settingDrawable"
+                    contentDescription = "settingDrawable",
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(Modifier.width(8.dp))
 
-                Column(Modifier.align(Alignment.CenterVertically)) {
+                Column(
+                    Modifier
+                        .align(Alignment.CenterVertically)
+                        .weight(1f)) {
                     Text(
                         text = totalSettingData.displayName,
                         maxLines = 1,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 16.sp,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -136,31 +157,43 @@ fun SettingListCard(totalSettingData: UiTotalSettingDto) {
                     Text(
                         text = totalSettingData.description,
                         maxLines = 2,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         fontSize = 14.sp,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-//                if(settingMenu.radioButtonVisible) {
-//                    var isRadioSelected by remember { mutableStateOf(totalSettingData.isInitEnabled) }
-//                    RadioButton(selected = isRadioSelected, onClick = {
+                Spacer(modifier = Modifier.width(8.dp))
+
+                if (settingMenu.radioButtonVisible) {
+                    var isRadioSelected by remember { mutableStateOf(totalSettingData.isInitEnabled) }
+                    Switch(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.surface, // thumb은 일반 배경색처럼 부드럽게
+                            checkedTrackColor = MaterialTheme.colorScheme.primary, // 트랙(배경)은 primary 컬러
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color.Gray.copy(alpha = 0.4f)
+                        ),
+                        checked = isRadioSelected,
+                        onCheckedChange = {
 //                        isRadioSelected = settingMenu.onRadioChanged()
-//                    })
-//                }
+                        }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-@Preview()
+@Preview(showBackground = true, backgroundColor = 0xffffffff)
 fun SettingListCardPreview() {
     SettingListCard(
         UiTotalSettingDto(
             isVisible = true,
             isInitEnabled = true,
-            description = "테스트 세팅 설명입니다. ",
+            description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
             displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
             totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED
         )

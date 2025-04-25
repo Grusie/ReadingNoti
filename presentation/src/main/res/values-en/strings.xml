@@ -9,4 +9,8 @@
 
     <string name="common_error_title_notice_msg">Notice</string>
     <string name="common_error_title_msg">Error is Occurred.</string>
+
+    <string name="title_setting">Setting</string>
+    <string name="title_main">Home</string>
+    <string name="title_login">Login</string>
 </resources>

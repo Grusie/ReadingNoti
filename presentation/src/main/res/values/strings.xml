@@ -8,4 +8,8 @@
 
     <string name="common_error_title_notice_msg">알림</string>
     <string name="common_error_title_msg">오류가 발생했습니다.</string>
+
+    <string name="title_setting">설정</string>
+    <string name="title_main">홈</string>
+    <string name="title_login">로그인</string>
 </resources>
