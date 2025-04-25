@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">리딩알리미</string>
+
+    <string name="foreground_noti_title">리딩알리미 어플이 실행중입니다.</string>
+    <string name="foreground_noti_content_none">알림을 기다리고 있습니다.</string>
+    <string name="foreground_noti_content_speaking">알림을 읽고 있습니다.</string>
+    <string name="foreground_noti_content_error">알림을 읽는 도중 에러가 발생했습니다.</string>
+
+    <string name="common_error_title_notice_msg">알림</string>
+    <string name="common_error_title_msg">오류가 발생했습니다.</string>
+</resources>

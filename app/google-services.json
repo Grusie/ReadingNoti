@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "56403568608",
+    "project_id": "readingnoti",
+    "storage_bucket": "readingnoti.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:56403568608:android:70f7f31fefb372bd58ad85",
+        "android_client_info": {
+          "package_name": "com.grusie.readingnoti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "56403568608-0bc78crbas7rpjv1mc6ekaut6jnhrm9o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.grusie.readingnoti",
+            "certificate_hash": "78bcd8fb732870a39f4b7ac2830b6831d1167a88"
+          }
+        },
+        {
+          "client_id": "56403568608-cjei3a1e8tsunth0k7dsd85etf8kdd4j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmrHx7tMKXwbTf6BA8KKooHRz1RM0TjBU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "56403568608-cjei3a1e8tsunth0k7dsd85etf8kdd4j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
