@@ -1,4 +1,3 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -76,4 +75,9 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.service.auth)
     implementation(libs.google.identity.googleid)
+
+    // Room
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.room.ktx)
 }

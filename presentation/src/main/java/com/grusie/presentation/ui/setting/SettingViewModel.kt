@@ -2,7 +2,6 @@ package com.grusie.presentation.ui.setting
 
 import androidx.lifecycle.viewModelScope
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
-import com.grusie.presentation.data.setting.BaseSettingMenu
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.mapper.toUi
 import com.grusie.presentation.ui.base.BaseViewModel
@@ -22,12 +21,13 @@ class SettingViewModel @Inject constructor(
     private fun requestTotalSettingList() {
         viewModelScope.launch {
             setUiState(SettingUiState.Loading)
-            val result = totalSettingUseCases.getTotalSettingListUseCase()
+            val totalSettingList = totalSettingUseCases.getLocalTotalSettingListUseCase()
             setUiState(SettingUiState.Idle)
-            result.onSuccess { list ->
-                setEventState(SettingEventState.Success(list.map { it.toUi() }))
-            }.onFailure {
-                setEventState(SettingEventState.Error(it.message ?: ""))
+
+            setEventState(SettingEventState.Success(totalSettingList.map { it.toUi() }))
+            if(totalSettingList.isEmpty()) {
+                // 설정 전체 리스트는 비어있으면 안 되는데 비어있는 경우가 발생한 것으로 에러로 표현
+                setEventState(SettingEventState.Error("알 수 없는 에러가 발생했습니다."))
             }
         }
     }

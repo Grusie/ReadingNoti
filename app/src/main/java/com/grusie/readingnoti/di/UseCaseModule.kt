@@ -1,6 +1,9 @@
 package com.grusie.readingnoti.di
 
-import com.grusie.domain.usecase.totalSetting.GetTotalSettingListUseCase
+import com.grusie.domain.repository.TotalSettingRepository
+import com.grusie.domain.usecase.totalSetting.DeleteLocalTotalSettingUseCase
+import com.grusie.domain.usecase.totalSetting.GetLocalTotalSettingListUseCase
+import com.grusie.domain.usecase.totalSetting.InitTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import dagger.Module
 import dagger.Provides
@@ -13,10 +16,12 @@ object UseCaseModule {
 
     @Provides
     fun provideTotalSettingUseCases(
-        getTotalSettingListUseCase: GetTotalSettingListUseCase
+        totalSettingRepository: TotalSettingRepository
     ): TotalSettingUseCases {
         return TotalSettingUseCases(
-            getTotalSettingListUseCase = getTotalSettingListUseCase
+            initTotalSettingListUseCase = InitTotalSettingListUseCase(totalSettingRepository),
+            getLocalTotalSettingListUseCase = GetLocalTotalSettingListUseCase(totalSettingRepository),
+            deleteLocalTotalSettingUseCase = DeleteLocalTotalSettingUseCase(totalSettingRepository)
         )
     }
 

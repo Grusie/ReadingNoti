@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 import com.grusie.presentation.ui.auth.LoginScreen
 import com.grusie.presentation.ui.main.MainScreen
 import com.grusie.presentation.ui.setting.SettingScreen
-import com.grusie.presentation.ui.SplashScreen
+import com.grusie.presentation.ui.splash.SplashScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {

@@ -44,6 +44,7 @@ import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTitleBar
+import com.grusie.presentation.ui.common.OneButtonAlertDialog
 
 @Composable
 fun SettingScreen(
@@ -58,6 +59,8 @@ fun SettingScreen(
     val uiState = viewModel.uiState.collectAsState().value
     val context = LocalContext.current
     var totalSettingList by remember { mutableStateOf(listOf<UiTotalSettingDto>()) }
+    var isShowErrorDialog by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.eventState.collect { eventState ->
@@ -72,6 +75,11 @@ fun SettingScreen(
                                 }
                             }
                         }
+                    }
+
+                    is SettingEventState.Error -> {
+                        errorMsg = eventState.errorMsg
+                        isShowErrorDialog = true
                     }
                 }
             }
@@ -108,6 +116,13 @@ fun SettingScreen(
                     CircleProgressBar()
                 }
             }
+
+            OneButtonAlertDialog(
+                isShowDialog = isShowErrorDialog,
+                onClickConfirm = { isShowErrorDialog = false },
+                title = context.getString(R.string.common_error_title_notice_msg),
+                content = errorMsg,
+            )
         }
     }
 }
@@ -143,7 +158,8 @@ fun SettingListCard(totalSettingData: UiTotalSettingDto) {
                 Column(
                     Modifier
                         .align(Alignment.CenterVertically)
-                        .weight(1f)) {
+                        .weight(1f)
+                ) {
                     Text(
                         text = totalSettingData.displayName,
                         maxLines = 1,

@@ -21,6 +21,7 @@ googlePlayServicesAuth = "1.3.0"
 googleid = "1.1.1"
 hiltCompose = "1.2.0"
 composeUiTooling = "1.6.7"
+room = "2.7.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,24 +42,28 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 google-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 google-firebase-auth = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "playServicesAuth" }
 google-gms-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
-google-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
+google-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-hilt-android = { group = "com.google.dagger", name="hilt-android", version.ref = "hilt"}
-hilt-compiler = { group = "com.google.dagger", name="hilt-compiler", version.ref = "hilt"}
-androidx-credentials = {group = "androidx.credentials", name = "credentials", version.ref = "googleCredentialsAuth"}
-androidx-credentials-play-service-auth = {group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "googlePlayServicesAuth"}
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "googleCredentialsAuth" }
+androidx-credentials-play-service-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "googlePlayServicesAuth" }
 google-identity-googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 hilt-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltCompose" }
-compose-ui-tooling = { group = "androidx.compose.ui", name="ui-tooling", version.ref = "composeUiTooling"}
-google-firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore"}
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "composeUiTooling" }
+google-firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-google-gms-serivces = { id = "com.google.gms.google-services", version.ref = "googleServices"}
+google-gms-serivces = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt"}
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+room = { id = "androidx.room", version.ref = "room" }

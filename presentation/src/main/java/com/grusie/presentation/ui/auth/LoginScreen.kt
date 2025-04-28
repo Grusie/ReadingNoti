@@ -57,7 +57,6 @@ fun LoginScreen(
                         } catch (e: Exception) {
                             Logger.e("LoginScreen Navigate Error", e)
                             isShowErrorDialog = true
-
                         }
                     }
 

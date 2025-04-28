@@ -1,5 +1,7 @@
 package com.grusie.domain.usecase.totalSetting
 
 data class TotalSettingUseCases(
-    val getTotalSettingListUseCase: GetTotalSettingListUseCase,
+    val initTotalSettingListUseCase:InitTotalSettingListUseCase,
+    val getLocalTotalSettingListUseCase: GetLocalTotalSettingListUseCase,
+    val deleteLocalTotalSettingUseCase: DeleteLocalTotalSettingUseCase
 )
