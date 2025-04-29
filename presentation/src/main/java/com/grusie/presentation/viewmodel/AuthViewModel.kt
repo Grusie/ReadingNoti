@@ -142,8 +142,6 @@ class AuthViewModel @Inject constructor(
                             }
                         }
                     }
-
-                    setEventState(LoginEventState.Navigate(Routes.MAIN, true))
                 }
             }
         }
