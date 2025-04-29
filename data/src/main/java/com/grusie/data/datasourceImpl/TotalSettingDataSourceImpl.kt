@@ -1,20 +1,24 @@
 package com.grusie.data.datasourceImpl
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grusie.core.utils.NetworkChecker
 import com.grusie.data.data.CollectionKind
 import com.grusie.data.data.PersonalSettingDto
 import com.grusie.data.data.TotalSettingDto
 import com.grusie.data.datasource.TotalSettingDataSource
+import com.grusie.domain.data.CustomException
 import com.grusie.domain.data.DomainPersonalSettingDto
-import com.grusie.domain.data.PersonalSettingException
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class TotalSettingDataSourceImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val networkChecker: NetworkChecker
 ) : TotalSettingDataSource {
     override suspend fun getTotalSettingList(): Result<List<TotalSettingDto>> {
         return try {
+            if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
+
             val snapShot = firestore.collection(CollectionKind.TOTAL_SETTING_LIST).get().await()
             val totalSettingList = snapShot.documents.mapNotNull { doc ->
                 val isVisible = doc.getBoolean("isVisible") ?: false
@@ -40,11 +44,13 @@ class TotalSettingDataSourceImpl @Inject constructor(
 
     override suspend fun getPersonalSettingList(uid: String): Result<List<PersonalSettingDto>> {
         return try {
+            if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
+
             val snapShot = firestore.collection(CollectionKind.PERSONAL_SETTING_LIST).document(uid)
                 .collection(CollectionKind.SUB_PERSONAL_SETTING_LIST).get().await()
 
             if (snapShot.isEmpty) {
-                return Result.failure(PersonalSettingException.NotFoundOnServer)
+                return Result.failure(CustomException.NotFoundOnServer)
             }
             val personalSettingList = snapShot.map { doc ->
                 val menuId = doc.getLong("menuId")?.toInt() ?: -1
@@ -68,6 +74,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
         uid: String,
         list: List<DomainPersonalSettingDto>
     ): Result<Unit> {
+        if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
         val collectionRef = firestore
             .collection(CollectionKind.PERSONAL_SETTING_LIST)
             .document(uid)

@@ -1,6 +1,7 @@
 package com.grusie.presentation.data.setting
 
 import androidx.annotation.DrawableRes
+import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.ui.setting.SettingViewModel
 
 abstract class BaseSettingMenu {
@@ -12,14 +13,25 @@ abstract class BaseSettingMenu {
         private set
 
     // 설정 아이템을 클릭 했을 때의 동작 처리
-    abstract fun onClickAction(viewModel: SettingViewModel? = null, selected: Boolean): Boolean
+    suspend fun onClickAction(
+        totalAppSetting: TOTAL_APP_SETTING,
+        viewModel: SettingViewModel? = null
+    ) {
+        viewModel?.onSettingClick(totalAppSetting)
+    }
 
     /**
      * 라디오 버튼의 상태를 변경 시킬 때의 처리
      *
      * @return 서버통신 등 결과 상태를 리턴(radioSelected 설정 시 사용)
      */
-    abstract fun onRadioChanged(viewModel: SettingViewModel? = null, selected: Boolean): Boolean
+    suspend fun onRadioChanged(
+        totalAppSetting: TOTAL_APP_SETTING,
+        viewModel: SettingViewModel? = null,
+        selected: Boolean
+    ) {
+        viewModel?.onSettingRadioButtonChanged(totalAppSetting, selected)
+    }
 
     // 라디오 버튼의 보여짐 유무를 설정 할 때 사용
     open fun setRadioButtonVisible(isVisible: Boolean) {

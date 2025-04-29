@@ -60,3 +60,11 @@ fun PersonalSettingDto.toLocal(): LocalPersonalSettingEntity {
         customData = this.customData
     )
 }
+
+fun DomainPersonalSettingDto.toLocal(): LocalPersonalSettingEntity {
+    return LocalPersonalSettingEntity(
+        menuId = this.menuId,
+        isEnabled = this.isEnabled,
+        customData = this.customData
+    )
+}

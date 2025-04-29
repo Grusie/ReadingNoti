@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,12 +40,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.presentation.R
+import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingScreen(
@@ -58,25 +62,15 @@ fun SettingScreen(
 
     val uiState = viewModel.uiState.collectAsState().value
     val context = LocalContext.current
-    var totalSettingList by remember { mutableStateOf(listOf<UiTotalSettingDto>()) }
-    var isShowErrorDialog by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf("") }
+    val settingMergedList = viewModel.settingMergedList.collectAsState().value
+    var isShowErrorDialog by remember { mutableStateOf(false) }
+    val settingSwitchStates by viewModel.settingSwitchStates.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.eventState.collect { eventState ->
             if (eventState != null) {
                 when (eventState) {
-                    is SettingEventState.Success -> {
-                        if (eventState.data != null) {
-                            when (eventState.data) {
-                                is List<*> -> {
-                                    totalSettingList =
-                                        eventState.data.map { it as UiTotalSettingDto }
-                                }
-                            }
-                        }
-                    }
-
                     is SettingEventState.Error -> {
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
@@ -102,8 +96,10 @@ fun SettingScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn() {
-                items(totalSettingList) { settingItem ->
-                    SettingListCard(settingItem)
+                items(settingMergedList) { settingItem ->
+                    val isRadioSelected =
+                        settingSwitchStates[settingItem.totalSetting.menuId] ?: false
+                    SettingListCard(viewModel, settingItem, isRadioSelected)
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
                         thickness = 1.dp,
@@ -128,13 +124,21 @@ fun SettingScreen(
 }
 
 @Composable
-fun SettingListCard(totalSettingData: UiTotalSettingDto) {
-
+fun SettingListCard(
+    viewModel: SettingViewModel? = null,
+    mergedSetting: MergedSetting,
+    isRadioSelected: Boolean = false
+) {
     // 앱에 정의되어 있지 않은 설정 값일 경우 화면에 표시하지 않는다.
-    val totalAppSettingEnum = totalSettingData.totalAppSettingEnum ?: run { return }
+    val totalAppSettingEnum = mergedSetting.totalSetting.totalAppSettingEnum ?: run { return }
     val settingMenu = totalAppSettingEnum.settingMenu
 
-    if (totalSettingData.isVisible) {
+    val totalSetting = mergedSetting.totalSetting
+    val personalSetting = mergedSetting.personalSetting
+
+    val scope = rememberCoroutineScope()
+
+    if (totalSetting.isVisible) {
         Box(
             modifier = Modifier
                 .padding(vertical = 8.dp, horizontal = 12.dp)
@@ -161,7 +165,7 @@ fun SettingListCard(totalSettingData: UiTotalSettingDto) {
                         .weight(1f)
                 ) {
                     Text(
-                        text = totalSettingData.displayName,
+                        text = totalSetting.displayName,
                         maxLines = 1,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 16.sp,
@@ -171,7 +175,7 @@ fun SettingListCard(totalSettingData: UiTotalSettingDto) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = totalSettingData.description,
+                        text = totalSetting.description,
                         maxLines = 2,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         fontSize = 14.sp,
@@ -182,18 +186,19 @@ fun SettingListCard(totalSettingData: UiTotalSettingDto) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 if (settingMenu.radioButtonVisible) {
-                    var isRadioSelected by remember { mutableStateOf(totalSettingData.isInitEnabled) }
                     Switch(
                         modifier = Modifier.align(Alignment.CenterVertically),
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.surface, // thumb은 일반 배경색처럼 부드럽게
-                            checkedTrackColor = MaterialTheme.colorScheme.primary, // 트랙(배경)은 primary 컬러
+                            checkedThumbColor = MaterialTheme.colorScheme.surface,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
                             uncheckedThumbColor = Color.White,
                             uncheckedTrackColor = Color.Gray.copy(alpha = 0.4f)
                         ),
                         checked = isRadioSelected,
                         onCheckedChange = {
-//                        isRadioSelected = settingMenu.onRadioChanged()
+                            scope.launch {
+                                totalAppSettingEnum.onRadioChanged(viewModel, !isRadioSelected)
+                            }
                         }
                     )
                 }
@@ -206,12 +211,14 @@ fun SettingListCard(totalSettingData: UiTotalSettingDto) {
 @Preview(showBackground = true, backgroundColor = 0xffffffff)
 fun SettingListCardPreview() {
     SettingListCard(
-        UiTotalSettingDto(
-            isVisible = true,
-            isInitEnabled = true,
-            description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
-            displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
-            totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED
+        mergedSetting = MergedSetting(
+            UiTotalSettingDto(
+                isVisible = true,
+                isInitEnabled = true,
+                description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
+                displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
+                totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED
+            ), DomainPersonalSettingDto()
         )
     )
 }

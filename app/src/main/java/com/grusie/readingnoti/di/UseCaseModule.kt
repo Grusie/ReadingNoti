@@ -1,7 +1,9 @@
 package com.grusie.readingnoti.di
 
 import com.grusie.domain.repository.TotalSettingRepository
+import com.grusie.domain.usecase.totalSetting.ChangeSettingInfoUseCase
 import com.grusie.domain.usecase.totalSetting.DeleteLocalTotalSettingUseCase
+import com.grusie.domain.usecase.totalSetting.GetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.InitPersonalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.InitTotalSettingListUseCase
@@ -23,7 +25,11 @@ object UseCaseModule {
             initTotalSettingListUseCase = InitTotalSettingListUseCase(totalSettingRepository),
             getLocalTotalSettingListUseCase = GetLocalTotalSettingListUseCase(totalSettingRepository),
             deleteLocalTotalSettingUseCase = DeleteLocalTotalSettingUseCase(totalSettingRepository),
-            initPersonalSettingUseCase = InitPersonalSettingUseCase(totalSettingRepository)
+            initPersonalSettingUseCase = InitPersonalSettingUseCase(totalSettingRepository),
+            getLocalPersonalSettingListUseCase = GetLocalPersonalSettingListUseCase(
+                totalSettingRepository
+            ),
+            changeSettingInfoUseCase = ChangeSettingInfoUseCase(totalSettingRepository)
         )
     }
 

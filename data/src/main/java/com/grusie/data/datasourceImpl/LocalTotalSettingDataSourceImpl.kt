@@ -33,6 +33,10 @@ class LocalTotalSettingDataSourceImpl @Inject constructor(
         localPersonalSettingDao.insertLocalPersonalSettingList(localPersonalSettingList)
     }
 
+    override suspend fun changePersonalSetting(localPersonalSettingEntity: LocalPersonalSettingEntity) {
+        localPersonalSettingDao.insertLocalPersonalSetting(localPersonalSettingEntity)
+    }
+
     override suspend fun deletePersonalSettingList() {
         localPersonalSettingDao.deleteLocalPersonalSettingList()
     }

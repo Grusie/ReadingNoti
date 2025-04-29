@@ -10,7 +10,10 @@ import com.grusie.data.data.LocalPersonalSettingEntity
 @Dao
 interface LocalPersonalSettingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLocalPersonalSettingList(localPersonalSettingEntity: List<LocalPersonalSettingEntity>)
+    suspend fun insertLocalPersonalSettingList(localPersonalSettingList: List<LocalPersonalSettingEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLocalPersonalSetting(localPersonalSettingEntity: LocalPersonalSettingEntity)
 
     @Query("SELECT * FROM personal_setting")
     suspend fun getLocalPersonalSettingList(): List<LocalPersonalSettingEntity>

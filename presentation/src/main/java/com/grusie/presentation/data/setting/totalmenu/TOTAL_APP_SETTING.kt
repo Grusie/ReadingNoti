@@ -1,6 +1,7 @@
 package com.grusie.presentation.data.setting.totalmenu
 
 import com.grusie.presentation.data.setting.BaseSettingMenu
+import com.grusie.presentation.ui.setting.SettingViewModel
 
 enum class TOTAL_APP_SETTING(val menuId: Int, val settingMenu: BaseSettingMenu) {
     TOTAL_NOTI_ENABLED(MenuId.TOTAL_NOTI_ENABLED, TotalNotiEnabled()),  // 알림
@@ -16,8 +17,8 @@ enum class TOTAL_APP_SETTING(val menuId: Int, val settingMenu: BaseSettingMenu) 
 
         fun getTotalAppSetting(menuId: Int): TOTAL_APP_SETTING? {
             var result: TOTAL_APP_SETTING? = null
-            for(entry in TOTAL_APP_SETTING.entries){
-                if(entry.menuId == menuId) {
+            for (entry in TOTAL_APP_SETTING.entries) {
+                if (entry.menuId == menuId) {
                     result = entry
                     break
                 }
@@ -25,5 +26,13 @@ enum class TOTAL_APP_SETTING(val menuId: Int, val settingMenu: BaseSettingMenu) 
 
             return result
         }
+    }
+
+    suspend fun onClick(viewModel: SettingViewModel? = null) {
+        settingMenu.onClickAction(this, viewModel)
+    }
+
+    suspend fun onRadioChanged(viewModel: SettingViewModel? = null, isSelected: Boolean) {
+        settingMenu.onRadioChanged(this, viewModel, isSelected)
     }
 }

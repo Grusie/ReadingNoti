@@ -6,8 +6,9 @@ import com.grusie.data.datasource.LocalTotalSettingDataSource
 import com.grusie.data.datasource.TotalSettingDataSource
 import com.grusie.data.mapper.toDomain
 import com.grusie.data.mapper.toLocal
+import com.grusie.domain.data.CustomException
+import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.data.DomainTotalSettingDto
-import com.grusie.domain.data.PersonalSettingException
 import com.grusie.domain.repository.TotalSettingRepository
 import javax.inject.Inject
 
@@ -89,7 +90,7 @@ class TotalSettingRepositoryImpl @Inject constructor(
             )
 
             when (e) {
-                is PersonalSettingException.NotFoundOnServer -> {
+                is CustomException.NotFoundOnServer -> {
                     // 로컬DB에 값이 없고 서버에도 값이 없을 경우는 기본 세팅 값 지정
                     localTotalSettingDataSource.savePersonalSettingList(DefaultValues.initPersonalSettingList)
                 }
@@ -98,6 +99,20 @@ class TotalSettingRepositoryImpl @Inject constructor(
                     throw e
                 }
             }
+        }
+    }
+
+    override suspend fun getLocalPersonalSettingList(): List<DomainPersonalSettingDto> {
+        return localTotalSettingDataSource.getPersonalSettingList().map { it.toDomain() }
+    }
+
+    override suspend fun changeSettingInfo(
+        uid: String?,
+        domainPersonalSettingDto: DomainPersonalSettingDto
+    ) {
+        localTotalSettingDataSource.changePersonalSetting(domainPersonalSettingDto.toLocal())
+        uid?.let {
+            totalSettingDataSource.setPersonalSettingList(uid, listOf(domainPersonalSettingDto))
         }
     }
 }

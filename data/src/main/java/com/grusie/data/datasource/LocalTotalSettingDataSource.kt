@@ -9,5 +9,6 @@ interface LocalTotalSettingDataSource {
     suspend fun deleteTotalSettingList()
     suspend fun getPersonalSettingList(): List<LocalPersonalSettingEntity>
     suspend fun savePersonalSettingList(localPersonalSettingList: List<LocalPersonalSettingEntity>)
+    suspend fun changePersonalSetting(localPersonalSettingEntity: LocalPersonalSettingEntity)
     suspend fun deletePersonalSettingList()
 }
