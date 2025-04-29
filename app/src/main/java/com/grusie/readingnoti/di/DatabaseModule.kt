@@ -3,6 +3,7 @@ package com.grusie.readingnoti.di
 import android.content.Context
 import androidx.room.Room
 import com.grusie.data.AppDatabase
+import com.grusie.data.dao.LocalPersonalSettingDao
 import com.grusie.data.dao.LocalTotalSettingDao
 import dagger.Module
 import dagger.Provides
@@ -28,5 +29,10 @@ object DatabaseModule {
     @Provides
     fun provideTotalSettingDao(database: AppDatabase): LocalTotalSettingDao {
         return database.localTotalSettingDao()
+    }
+
+    @Provides
+    fun providePersonalSettingDao(database: AppDatabase): LocalPersonalSettingDao {
+        return database.localPersonalSettingDao()
     }
 }

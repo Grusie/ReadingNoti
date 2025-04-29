@@ -26,4 +26,12 @@ object DefaultValues {
             menuId = 102
         )
     )
+
+    val initPersonalSettingList: List<LocalPersonalSettingEntity> = initLocalTotalSettingList.map {
+        LocalPersonalSettingEntity(
+            menuId = it.menuId,
+            isEnabled = it.isInitEnabled,
+            customData = null
+        )
+    }
 }

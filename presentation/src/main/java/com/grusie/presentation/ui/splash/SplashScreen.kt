@@ -23,6 +23,7 @@ import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
+import kotlin.system.exitProcess
 
 @Composable
 fun SplashScreen(
@@ -34,6 +35,7 @@ fun SplashScreen(
     val context = LocalContext.current
     var isShowErrorDialog by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf("") }
+    var isFinishApp by remember { mutableStateOf(false) }   // 에러 시 앱을 종료 할 건지에 대한 플래그
 
     LaunchedEffect(Unit) {
         viewModel.eventState.collect { eventState ->
@@ -49,6 +51,7 @@ fun SplashScreen(
 
                     is SplashEventState.Error -> {
                         errorMsg = eventState.errorMsg
+                        isFinishApp = eventState.isFinishApp
                         isShowErrorDialog = true
                     }
                 }
@@ -77,7 +80,12 @@ fun SplashScreen(
 
             OneButtonAlertDialog(
                 isShowDialog = isShowErrorDialog,
-                onClickConfirm = { isShowErrorDialog = false },
+                onClickConfirm = {
+                    isShowErrorDialog = false
+                    if (isFinishApp) {
+                        exitProcess(0)
+                    }
+                },
                 title = context.getString(R.string.common_error_title_notice_msg),
                 content = errorMsg,
             )

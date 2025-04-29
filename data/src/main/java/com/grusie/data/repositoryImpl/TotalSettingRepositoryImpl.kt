@@ -7,6 +7,7 @@ import com.grusie.data.datasource.TotalSettingDataSource
 import com.grusie.data.mapper.toDomain
 import com.grusie.data.mapper.toLocal
 import com.grusie.domain.data.DomainTotalSettingDto
+import com.grusie.domain.data.PersonalSettingException
 import com.grusie.domain.repository.TotalSettingRepository
 import javax.inject.Inject
 
@@ -21,13 +22,16 @@ class TotalSettingRepositoryImpl @Inject constructor(
             result.map { list ->
                 // 서버에서 가져온 데이터를 Room DB에 저장
                 saveLocalTotalSettingList(list.map { it.toDomain() })
-                list.map { it.toDomain() }
             }.getOrElse { e ->
                 // 서버 통신 실패 시 예외를 던짐
                 throw e
             }
         } catch (e: Exception) {
-            Logger.log(Logger.LogType.LOG_TYPE_E, this@TotalSettingRepositoryImpl::class.java.simpleName, "${e.message}")
+            Logger.log(
+                Logger.LogType.LOG_TYPE_E,
+                this@TotalSettingRepositoryImpl::class.java.simpleName,
+                "${e.message}"
+            )
             // 로컬DB에 전체 설정에 관한 정보가 있으면 냅두고, 그렇지 않다면 기본 값을 설정
             val localData = localTotalSettingDataSource.getTotalSettingList()
             if (localData.isEmpty()) {
@@ -46,5 +50,54 @@ class TotalSettingRepositoryImpl @Inject constructor(
 
     override suspend fun deleteLocalTotalSettingList() {
         localTotalSettingDataSource.deleteTotalSettingList()
+    }
+
+    override suspend fun initPersonalSetting(uid: String?) {
+        try {
+            val localData = localTotalSettingDataSource.getPersonalSettingList()
+
+            if (uid != null) {
+                if (localData.isEmpty()) {
+                    // 최초 로그인이거나 로컬 데이터가 날아갔거나 설정 값을 한 번도 바꾸지 않았을 경우
+                    // 서버에 있는 해당 로그인 계정의 개인 설정을 로컬에 저장
+                    val result = totalSettingDataSource.getPersonalSettingList(uid)
+
+                    result.map { list ->
+                        // 서버에서 가져온 데이터를 Room DB에 저장
+                        localTotalSettingDataSource.savePersonalSettingList(list.map { it.toLocal() })
+                    }.getOrElse { e ->
+                        // 서버 통신 실패 시 예외를 던짐
+                        throw e
+                    }
+                } else {
+                    // Empty가 아닐 경우는 서버에 로컬 데이터를 전송 <- 중간에 네트워크가 끊키거나 해서 로컬에만 적용 되어 있을 수 있기에.
+                    totalSettingDataSource.setPersonalSettingList(
+                        uid,
+                        localData.map { it.toDomain() })
+                }
+            } else {
+                // 로그인 상태가 아닐 경우는 로컬 데이터가 비어있을 경우에만 기본 세팅값 지정
+                if (localData.isEmpty()) {
+                    localTotalSettingDataSource.savePersonalSettingList(DefaultValues.initPersonalSettingList)
+                }
+            }
+        } catch (e: Exception) {
+            Logger.log(
+                Logger.LogType.LOG_TYPE_E,
+                this@TotalSettingRepositoryImpl::class.java.simpleName,
+                "${e.message}"
+            )
+
+            when (e) {
+                is PersonalSettingException.NotFoundOnServer -> {
+                    // 로컬DB에 값이 없고 서버에도 값이 없을 경우는 기본 세팅 값 지정
+                    localTotalSettingDataSource.savePersonalSettingList(DefaultValues.initPersonalSettingList)
+                }
+
+                else -> {
+                    throw e
+                }
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.grusie.readingnoti.di
 import com.grusie.domain.repository.TotalSettingRepository
 import com.grusie.domain.usecase.totalSetting.DeleteLocalTotalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalTotalSettingListUseCase
+import com.grusie.domain.usecase.totalSetting.InitPersonalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.InitTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import dagger.Module
@@ -21,7 +22,8 @@ object UseCaseModule {
         return TotalSettingUseCases(
             initTotalSettingListUseCase = InitTotalSettingListUseCase(totalSettingRepository),
             getLocalTotalSettingListUseCase = GetLocalTotalSettingListUseCase(totalSettingRepository),
-            deleteLocalTotalSettingUseCase = DeleteLocalTotalSettingUseCase(totalSettingRepository)
+            deleteLocalTotalSettingUseCase = DeleteLocalTotalSettingUseCase(totalSettingRepository),
+            initPersonalSettingUseCase = InitPersonalSettingUseCase(totalSettingRepository)
         )
     }
 

@@ -7,4 +7,5 @@ interface TotalSettingRepository {
     suspend fun saveLocalTotalSettingList(localTotalSettingList: List<DomainTotalSettingDto>)
     suspend fun getLocalTotalSettingList(): List<DomainTotalSettingDto>
     suspend fun deleteLocalTotalSettingList()
+    suspend fun initPersonalSetting(uid: String?)
 }
