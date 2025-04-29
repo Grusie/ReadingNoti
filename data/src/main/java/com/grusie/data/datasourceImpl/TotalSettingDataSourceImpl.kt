@@ -74,23 +74,27 @@ class TotalSettingDataSourceImpl @Inject constructor(
         uid: String,
         list: List<DomainPersonalSettingDto>
     ): Result<Unit> {
-        if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
-        val collectionRef = firestore
-            .collection(CollectionKind.PERSONAL_SETTING_LIST)
-            .document(uid)
-            .collection(CollectionKind.SUB_PERSONAL_SETTING_LIST)
+        return try {
+            if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
+            val collectionRef = firestore
+                .collection(CollectionKind.PERSONAL_SETTING_LIST)
+                .document(uid)
+                .collection(CollectionKind.SUB_PERSONAL_SETTING_LIST)
 
-        list.forEach { setting ->
-            collectionRef
-                .document(setting.menuId.toString())
-                .set(
-                    mapOf(
-                        "menuId" to setting.menuId,
-                        "isEnabled" to setting.isEnabled,
-                        "customData" to setting.customData
-                    )
-                ).await()
+            list.forEach { setting ->
+                collectionRef
+                    .document(setting.menuId.toString())
+                    .set(
+                        mapOf(
+                            "menuId" to setting.menuId,
+                            "isEnabled" to setting.isEnabled,
+                            "customData" to setting.customData
+                        )
+                    ).await()
+            }
+            return Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-        return Result.success(Unit)
     }
 }

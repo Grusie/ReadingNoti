@@ -38,3 +38,43 @@ fun OneButtonAlertDialog(
         )
     }
 }
+
+@Composable
+fun TwoButtonAlertDialog(
+    isShowDialog: Boolean,
+    onClickConfirm: () -> Unit,
+    onClickCancel: () -> Unit = { },
+    onDismiss: (() -> Unit)? = null,
+    title: String,
+    content: String,
+    confirmText: String? = null,
+    cancelText: String? = null
+) {
+    if (isShowDialog) {
+        AlertDialog(
+            onDismissRequest = { onDismiss?.invoke() ?: onClickCancel() },
+            title = {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Text(
+                    text = content,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { onClickConfirm() }) {
+                    Text(confirmText ?: "확인")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onClickCancel() }) {
+                    Text(cancelText ?: "취소")
+                }
+            }
+        )
+    }
+}

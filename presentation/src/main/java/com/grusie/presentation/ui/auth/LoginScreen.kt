@@ -29,6 +29,7 @@ import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
+import com.grusie.presentation.ui.common.TwoButtonAlertDialog
 import com.grusie.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -40,6 +41,9 @@ fun LoginScreen(
     val authUiState by viewModel.uiState.collectAsState()
     var isShowErrorDialog by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf("") }
+    var alertTitle by remember { mutableStateOf("") }
+    var alertMsg by remember { mutableStateOf("") }
+    var isShowAlertDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -63,6 +67,12 @@ fun LoginScreen(
                     is LoginEventState.Error -> {
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
+                    }
+
+                    is LoginEventState.Alert -> {
+                        alertTitle = eventState.title
+                        alertMsg = eventState.msg
+                        isShowAlertDialog = true
                     }
                 }
         }
@@ -89,6 +99,23 @@ fun LoginScreen(
             title = context.getString(R.string.common_error_title_notice_msg),
             content = errorMsg,
         )
+
+        TwoButtonAlertDialog(
+            isShowDialog = isShowAlertDialog,
+            onClickConfirm = {
+                isShowErrorDialog = false
+                viewModel.coverPersonalSetting(true)
+            },
+            onClickCancel = {
+                isShowErrorDialog = false
+                viewModel.coverPersonalSetting(false)
+            },
+            onDismiss = {},
+            title = alertTitle,
+            content = alertMsg,
+        )
+
+
     }
 }
 
