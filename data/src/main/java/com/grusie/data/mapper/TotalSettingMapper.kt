@@ -10,36 +10,43 @@ import com.grusie.domain.data.DomainTotalSettingDto
 fun TotalSettingDto.toDomain(): DomainTotalSettingDto {
     return DomainTotalSettingDto(
         menuId = this.menuId,
+        type = this.type,
         isVisible = this.isVisible,
         displayName = this.displayName,
         isInitEnabled = this.isInitEnabled,
-        description = this.description
+        description = this.description,
+        imageUrl = this.imageUrl
     )
 }
 
 fun LocalTotalSettingEntity.toDomain(): DomainTotalSettingDto {
     return DomainTotalSettingDto(
         menuId = this.menuId,
+        type = this.type,
         isVisible = this.isVisible,
         displayName = this.displayName,
         isInitEnabled = this.isInitEnabled,
-        description = this.description
+        description = this.description,
+        imageUrl = this.imageUrl
     )
 }
 
 fun DomainTotalSettingDto.toLocal(): LocalTotalSettingEntity {
     return LocalTotalSettingEntity(
         menuId = this.menuId,
+        type = this.type,
         isVisible = this.isVisible,
         displayName = this.displayName,
         isInitEnabled = this.isInitEnabled,
-        description = this.description
+        description = this.description,
+        imageUrl = this.imageUrl
     )
 }
 
 fun LocalPersonalSettingEntity.toDomain(): DomainPersonalSettingDto {
     return DomainPersonalSettingDto(
         menuId = this.menuId,
+        type = this.type,
         isEnabled = this.isEnabled,
         customData = this.customData
     )
@@ -48,6 +55,7 @@ fun LocalPersonalSettingEntity.toDomain(): DomainPersonalSettingDto {
 fun PersonalSettingDto.toDomain(): DomainPersonalSettingDto {
     return DomainPersonalSettingDto(
         menuId = this.menuId,
+        type = this.type,
         isEnabled = this.isEnabled,
         customData = this.customData
     )
@@ -56,6 +64,7 @@ fun PersonalSettingDto.toDomain(): DomainPersonalSettingDto {
 fun PersonalSettingDto.toLocal(): LocalPersonalSettingEntity {
     return LocalPersonalSettingEntity(
         menuId = this.menuId,
+        type = this.type,
         isEnabled = this.isEnabled,
         customData = this.customData
     )
@@ -64,6 +73,7 @@ fun PersonalSettingDto.toLocal(): LocalPersonalSettingEntity {
 fun DomainPersonalSettingDto.toLocal(): LocalPersonalSettingEntity {
     return LocalPersonalSettingEntity(
         menuId = this.menuId,
+        type = this.type,
         isEnabled = this.isEnabled,
         customData = this.customData
     )

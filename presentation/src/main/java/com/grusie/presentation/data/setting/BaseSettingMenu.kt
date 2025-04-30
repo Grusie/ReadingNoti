@@ -30,7 +30,7 @@ abstract class BaseSettingMenu {
         viewModel: SettingViewModel? = null,
         selected: Boolean
     ) {
-        viewModel?.onSettingRadioButtonChanged(totalAppSetting, selected)
+        viewModel?.onSettingRadioButtonChanged(totalAppSetting.menuId, selected)
     }
 
     // 라디오 버튼의 보여짐 유무를 설정 할 때 사용

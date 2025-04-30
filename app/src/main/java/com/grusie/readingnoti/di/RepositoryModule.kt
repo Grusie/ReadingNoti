@@ -1,6 +1,10 @@
 package com.grusie.readingnoti.di
 
+import com.grusie.data.repositoryImpl.AdminRepositoryImpl
+import com.grusie.data.repositoryImpl.StorageRepositoryImpl
 import com.grusie.data.repositoryImpl.TotalSettingRepositoryImpl
+import com.grusie.domain.repository.AdminRepository
+import com.grusie.domain.repository.StorageRepository
 import com.grusie.domain.repository.TotalSettingRepository
 import dagger.Binds
 import dagger.Module
@@ -15,4 +19,14 @@ abstract class RepositoryModule {
     abstract fun bindTotalSettingRepository(
         impl: TotalSettingRepositoryImpl
     ): TotalSettingRepository
+
+    @Binds
+    abstract fun bindStorageRepository(
+        impl: StorageRepositoryImpl
+    ): StorageRepository
+
+    @Binds
+    abstract fun bindAdminRepository(
+        impl: AdminRepositoryImpl
+    ): AdminRepository
 }

@@ -1,6 +1,7 @@
 package com.grusie.presentation.ui.setting
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
+import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.presentation.R
 import com.grusie.presentation.data.setting.MergedSetting
@@ -96,14 +101,32 @@ fun SettingScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn() {
+                var isFirstAppSetting = false
                 items(settingMergedList) { settingItem ->
                     val isRadioSelected =
                         settingSwitchStates[settingItem.totalSetting.menuId] ?: false
-                    SettingListCard(viewModel, settingItem, isRadioSelected)
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-                        thickness = 1.dp,
-                    )
+
+                    if (settingItem.totalSetting.type == SettingType.APP) {
+                        if (!isFirstAppSetting) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                thickness = 1.dp,
+                            )
+                            isFirstAppSetting = true
+                        }
+
+                        AppSettingListItem(viewModel, settingItem, isRadioSelected)
+
+                    } else {
+                        TotalSettingListItem(viewModel, settingItem, isRadioSelected)
+                    }
+
+                    if (settingMergedList.last() != settingItem) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                            thickness = 1.dp,
+                        )
+                    }
                 }
             }
 
@@ -124,17 +147,22 @@ fun SettingScreen(
 }
 
 @Composable
-fun SettingListCard(
+fun TotalSettingListItem(
     viewModel: SettingViewModel? = null,
     mergedSetting: MergedSetting,
     isRadioSelected: Boolean = false
 ) {
-    // 앱에 정의되어 있지 않은 설정 값일 경우 화면에 표시하지 않는다.
-    val totalAppSettingEnum = mergedSetting.totalSetting.totalAppSettingEnum ?: run { return }
-    val settingMenu = totalAppSettingEnum.settingMenu
-
     val totalSetting = mergedSetting.totalSetting
     val personalSetting = mergedSetting.personalSetting
+
+    var totalAppSettingEnum: TOTAL_APP_SETTING? = null
+
+    if (totalSetting.type == SettingType.GENERAL) {
+        // 앱에 정의되어 있지 않은 설정 값일 경우 화면에 표시하지 않는다.
+        totalAppSettingEnum = mergedSetting.totalSetting.totalAppSettingEnum ?: run { return }
+    }
+
+    val settingMenu = totalAppSettingEnum!!.settingMenu
 
     val scope = rememberCoroutineScope()
 
@@ -207,10 +235,84 @@ fun SettingListCard(
     }
 }
 
+
+@Composable
+fun AppSettingListItem(
+    viewModel: SettingViewModel? = null,
+    mergedSetting: MergedSetting,
+    isRadioSelected: Boolean = false
+) {
+    val appSetting = mergedSetting.totalSetting
+    val personalSetting = mergedSetting.personalSetting
+
+    val scope = rememberCoroutineScope()
+
+    if (appSetting.isVisible) {
+        Box(
+            modifier = Modifier
+                .padding(vertical = 8.dp, horizontal = 12.dp)
+                .defaultMinSize(minHeight = 70.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp)
+            ) {
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .size(24.dp),
+                    painter = rememberAsyncImagePainter(appSetting.imageUrl),
+                    contentDescription = "app_icon",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+                )
+                Spacer(Modifier.width(8.dp))
+
+                Column(
+                    Modifier
+                        .align(Alignment.CenterVertically)
+                        .weight(1f)
+                ) {
+                    Text(
+                        text = appSetting.displayName,
+                        maxLines = 1,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontSize = 16.sp,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Switch(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.surface,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = Color.Gray.copy(alpha = 0.4f)
+                    ),
+                    checked = isRadioSelected,
+                    onCheckedChange = {
+                        scope.launch {
+                            viewModel?.onSettingRadioButtonChanged(
+                                appSetting.menuId,
+                                !isRadioSelected
+                            )
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 @Preview(showBackground = true, backgroundColor = 0xffffffff)
 fun SettingListCardPreview() {
-    SettingListCard(
+    TotalSettingListItem(
         mergedSetting = MergedSetting(
             UiTotalSettingDto(
                 isVisible = true,

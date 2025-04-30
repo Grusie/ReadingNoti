@@ -1,6 +1,12 @@
 package com.grusie.readingnoti.di
 
+import com.grusie.domain.repository.AdminRepository
+import com.grusie.domain.repository.StorageRepository
 import com.grusie.domain.repository.TotalSettingRepository
+import com.grusie.domain.usecase.admin.AdminUseCases
+import com.grusie.domain.usecase.admin.GetAdminUserListUseCase
+import com.grusie.domain.usecase.storage.StorageUseCases
+import com.grusie.domain.usecase.storage.UploadFileToStorageUseCase
 import com.grusie.domain.usecase.totalSetting.ChangeSettingInfoUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalTotalSettingListUseCase
@@ -39,4 +45,21 @@ object UseCaseModule {
         )
     }
 
+    @Provides
+    fun provideStorageUseCases(
+        storageRepository: StorageRepository
+    ): StorageUseCases {
+        return StorageUseCases(
+            uploadFileToStorageUseCase = UploadFileToStorageUseCase(storageRepository)
+        )
+    }
+
+    @Provides
+    fun provideAdminUseCases(
+        adminRepository: AdminRepository
+    ): AdminUseCases {
+        return AdminUseCases(
+            getAdminUserListUseCase = GetAdminUserListUseCase(adminRepository)
+        )
+    }
 }

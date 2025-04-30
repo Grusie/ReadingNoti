@@ -1,8 +1,9 @@
 package com.grusie.data.datasourceImpl
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grusie.core.common.CollectionKind
+import com.grusie.core.common.SettingType
 import com.grusie.core.utils.NetworkChecker
-import com.grusie.data.data.CollectionKind
 import com.grusie.data.data.PersonalSettingDto
 import com.grusie.data.data.TotalSettingDto
 import com.grusie.data.datasource.TotalSettingDataSource
@@ -23,16 +24,20 @@ class TotalSettingDataSourceImpl @Inject constructor(
             val totalSettingList = snapShot.documents.mapNotNull { doc ->
                 val isVisible = doc.getBoolean("isVisible") ?: false
                 val isInitEnabled = doc.getBoolean("isInitEnabled") ?: false
+                val type = doc.getString("type") ?: SettingType.GENERAL.value
                 val menuId = doc.getLong("menuId")?.toInt() ?: -1
                 val displayName = doc.getString("displayName") ?: ""
                 val description = doc.getString("description") ?: ""
+                val imageUrl = doc.getString("imageUrl")
 
                 TotalSettingDto(
                     menuId = menuId,
                     isVisible = isVisible,
+                    type = SettingType.from(type),
                     displayName = displayName,
                     isInitEnabled = isInitEnabled,
-                    description = description
+                    description = description,
+                    imageUrl = imageUrl
                 )
             }
 
@@ -56,9 +61,11 @@ class TotalSettingDataSourceImpl @Inject constructor(
                 val menuId = doc.getLong("menuId")?.toInt() ?: -1
                 val isEnabled = doc.getBoolean("isEnabled") ?: false
                 val customData = doc.getString("customData")
+                val type = doc.getString("type") ?: SettingType.GENERAL.value
 
                 PersonalSettingDto(
                     menuId = menuId,
+                    type = SettingType.from(type),
                     isEnabled = isEnabled,
                     customData = customData
                 )
@@ -87,6 +94,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
                     .set(
                         mapOf(
                             "menuId" to setting.menuId,
+                            "type" to setting.type.value,
                             "isEnabled" to setting.isEnabled,
                             "customData" to setting.customData
                         )

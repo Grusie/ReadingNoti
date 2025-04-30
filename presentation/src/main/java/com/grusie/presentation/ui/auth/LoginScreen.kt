@@ -103,11 +103,11 @@ fun LoginScreen(
         TwoButtonAlertDialog(
             isShowDialog = isShowAlertDialog,
             onClickConfirm = {
-                isShowErrorDialog = false
+                isShowAlertDialog = false
                 viewModel.coverPersonalSetting(true)
             },
             onClickCancel = {
-                isShowErrorDialog = false
+                isShowAlertDialog = false
                 viewModel.coverPersonalSetting(false)
             },
             onDismiss = {},

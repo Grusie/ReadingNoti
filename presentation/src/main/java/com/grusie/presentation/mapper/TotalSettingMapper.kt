@@ -7,10 +7,12 @@ import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 fun DomainTotalSettingDto.toUi(): UiTotalSettingDto {
     return UiTotalSettingDto(
         menuId = this.menuId,
+        type = this.type,
         isVisible = this.isVisible,
         displayName = this.displayName,
         isInitEnabled = this.isInitEnabled,
         description = this.description,
-        totalAppSettingEnum = TOTAL_APP_SETTING.getTotalAppSetting(this.menuId)
+        totalAppSettingEnum = TOTAL_APP_SETTING.getTotalAppSetting(this.menuId),
+        imageUrl = this.imageUrl
     )
 }

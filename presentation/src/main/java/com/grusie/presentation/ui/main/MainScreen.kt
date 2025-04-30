@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ fun MainScreen(
 ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val context = LocalContext.current
+        val isAdmin = viewModel.isAdmin.collectAsState().value
         var hasPermission by remember {
             mutableStateOf(isNotificationListenerEnabled(context))
         }
@@ -67,6 +69,13 @@ fun MainScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = { navController.navigate(Routes.SETTING) }) {
                     Text("Go to Setting")
+                }
+
+                if (isAdmin) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { navController.navigate(Routes.ADMIN) }) {
+                        Text("Go to Admin Page")
+                    }
                 }
             }
         }

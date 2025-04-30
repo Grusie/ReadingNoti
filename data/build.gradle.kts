@@ -25,6 +25,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -59,4 +60,9 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
+
+    // supabase Storage
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.storage.kt)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

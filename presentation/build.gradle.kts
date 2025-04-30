@@ -23,7 +23,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "GOOGLE_AUTH_CLIENT_ID", properties.getProperty("GOOGLE_AUTH_CLIENT_ID"))
+        buildConfigField(
+            "String",
+            "GOOGLE_AUTH_CLIENT_ID",
+            properties.getProperty("GOOGLE_AUTH_CLIENT_ID")
+        )
     }
 
     buildTypes {
@@ -94,4 +98,7 @@ dependencies {
 
     // 컴포즈 프리뷰
     debugImplementation(libs.compose.ui.tooling)
+
+    // coil
+    implementation(libs.coil.compose)
 }

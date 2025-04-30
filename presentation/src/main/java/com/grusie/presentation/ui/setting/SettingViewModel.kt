@@ -1,14 +1,17 @@
 package com.grusie.presentation.ui.setting
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.grusie.domain.data.DomainPersonalSettingDto
+import com.grusie.domain.usecase.storage.StorageUseCases
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.mapper.toUi
 import com.grusie.presentation.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val totalSettingUseCases: TotalSettingUseCases,
+    private val storageUseCases: StorageUseCases,
     private val auth: FirebaseAuth
 ) : BaseViewModel() {
     private val _settingSwitchStates = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
@@ -73,18 +78,18 @@ class SettingViewModel @Inject constructor(
     }
 
     suspend fun onSettingRadioButtonChanged(
-        totalAppSetting: TOTAL_APP_SETTING,
+        menuId: Int,
         isSelected: Boolean
     ) {
         setUiState(SettingUiState.Loading)
 
         totalSettingUseCases.changeSettingInfoUseCase(
             auth.currentUser?.uid,
-            DomainPersonalSettingDto(menuId = totalAppSetting.menuId, isEnabled = isSelected)
+            DomainPersonalSettingDto(menuId = menuId, isEnabled = isSelected)
         )
         _settingSwitchStates.update {
             _settingSwitchStates.value.toMutableMap().apply {
-                this[totalAppSetting.menuId] = isSelected
+                this[menuId] = isSelected
             }
         }
         setUiState(SettingUiState.Idle)
