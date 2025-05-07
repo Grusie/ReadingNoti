@@ -6,6 +6,8 @@ import com.grusie.domain.data.DomainUserDto
 fun UserDto.toDomain(): DomainUserDto {
     return DomainUserDto(
         uid = this.uid,
-        name = this.name
+        name = this.name,
+        email = this.email,
+        isAdmin = this.isAdmin
     )
 }

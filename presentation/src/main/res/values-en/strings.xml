@@ -9,9 +9,18 @@
 
     <string name="common_error_title_notice_msg">Notice</string>
     <string name="common_error_title_msg">Error is Occurred.</string>
+    <string name="common_error_data_not_found">Data not found.</string>
+    <string name="common_error_network">A network error has occurred.</string>
 
     <string name="title_setting">Setting</string>
     <string name="title_main">Home</string>
     <string name="title_login">Login</string>
     <string name="title_admin">Admin Page</string>
+
+    <string name="manage_admin_title">Manage Admin</string>
+    <string name="manage_admin_content">You can add or remove administrators.</string>
+    <string name="manage_total_setting_title">Manage Total Settings</string>
+    <string name="manage_total_setting_content">You can manage all settings.</string>
+    <string name="manage_app_setting_title">Manage App Settings</string>
+    <string name="manage_app_setting_content">You can manage app settings.</string>
 </resources>

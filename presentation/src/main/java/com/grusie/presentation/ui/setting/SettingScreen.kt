@@ -109,7 +109,7 @@ fun SettingScreen(
                     if (settingItem.totalSetting.type == SettingType.APP) {
                         if (!isFirstAppSetting) {
                             HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.8f),
                                 thickness = 1.dp,
                             )
                             isFirstAppSetting = true

@@ -1,10 +1,8 @@
 package com.grusie.readingnoti.di
 
-import com.grusie.domain.repository.AdminRepository
 import com.grusie.domain.repository.StorageRepository
 import com.grusie.domain.repository.TotalSettingRepository
-import com.grusie.domain.usecase.admin.AdminUseCases
-import com.grusie.domain.usecase.admin.GetAdminUserListUseCase
+import com.grusie.domain.repository.UserRepository
 import com.grusie.domain.usecase.storage.StorageUseCases
 import com.grusie.domain.usecase.storage.UploadFileToStorageUseCase
 import com.grusie.domain.usecase.totalSetting.ChangeSettingInfoUseCase
@@ -16,6 +14,10 @@ import com.grusie.domain.usecase.totalSetting.InitTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
+import com.grusie.domain.usecase.user.GetUserListUseCase
+import com.grusie.domain.usecase.user.IsAdminUseCase
+import com.grusie.domain.usecase.user.SetAdminUseCase
+import com.grusie.domain.usecase.user.UserUseCases
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,11 +57,13 @@ object UseCaseModule {
     }
 
     @Provides
-    fun provideAdminUseCases(
-        adminRepository: AdminRepository
-    ): AdminUseCases {
-        return AdminUseCases(
-            getAdminUserListUseCase = GetAdminUserListUseCase(adminRepository)
+    fun provideUserUseCases(
+        userRepository: UserRepository
+    ): UserUseCases {
+        return UserUseCases(
+            getUserListUseCase = GetUserListUseCase(userRepository),
+            isAdminUseCase = IsAdminUseCase(userRepository),
+            setAdminUseCase = SetAdminUseCase(userRepository)
         )
     }
 }
