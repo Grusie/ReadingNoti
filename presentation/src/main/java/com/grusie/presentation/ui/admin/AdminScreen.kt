@@ -151,7 +151,6 @@ fun AdminSettingListItem(
 ) {
     Column(
         modifier = Modifier
-            .padding(vertical = 8.dp, horizontal = 20.dp)
             .defaultMinSize(minHeight = 70.dp)
             .fillMaxWidth()
             .clickable {
@@ -159,11 +158,13 @@ fun AdminSettingListItem(
                     setEventState(
                         AdminEventState.Navigate(
                             Routes.DETAIL_ADMIN,
-                            args = mapOf(Routes.AdminKeys.type to type.name)
+                            args = mapOf(Routes.AdminKeys.EXTRA_ADMIN_TYPE to type.name)
                         )
                     )
                 }
             }
+            .padding(vertical = 8.dp, horizontal = 20.dp)
+
     ) {
         Text(
             type.getTitle(context),

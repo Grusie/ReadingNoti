@@ -5,7 +5,7 @@ import com.grusie.core.common.SettingType
 
 class RoomTypeConverter {
     @TypeConverter
-    fun fromSettingType(type: SettingType): String = type.value
+    fun fromSettingType(type: SettingType): String = type.name
 
     @TypeConverter
     fun toSettingType(value: String): SettingType = SettingType.from(value)

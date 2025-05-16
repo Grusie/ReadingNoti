@@ -14,7 +14,7 @@ fun Exception.getErrorMsg(context: Context): String {
             context.getString(R.string.common_error_data_not_found)
         }
 
-        else -> this.message ?: ""
+        else -> this.message ?: context.getString(R.string.common_error_unknown_msg)
     }
 }
 
@@ -28,6 +28,10 @@ fun Throwable.getErrorMsg(context: Context): String {
             context.getString(R.string.common_error_data_not_found)
         }
 
-        else -> this.message ?: ""
+        CustomException.DataMatchingError -> {
+            context.getString(R.string.common_error_data_not_matched)
+        }
+
+        else -> this.message ?: context.getString(R.string.common_error_unknown_msg)
     }
 }

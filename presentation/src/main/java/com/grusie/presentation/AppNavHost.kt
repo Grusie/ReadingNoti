@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.grusie.presentation.ui.admin.AdminDetailModify
 import com.grusie.presentation.ui.admin.AdminDetailScreen
 import com.grusie.presentation.ui.admin.AdminScreen
 import com.grusie.presentation.ui.auth.LoginScreen
@@ -15,6 +16,9 @@ import com.grusie.presentation.ui.splash.SplashScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
+    val adminTypeArgs = Routes.AdminKeys.EXTRA_ADMIN_TYPE
+    val dataArgs = Routes.Keys.EXTRA_DATA
+
     NavHost(navController, startDestination = Routes.SPLASH) {
         composable(Routes.SPLASH) { SplashScreen(navController) }
         composable(Routes.LOGIN) { LoginScreen(navController) }
@@ -22,14 +26,20 @@ fun AppNavHost(navController: NavHostController) {
         composable(Routes.SETTING) { SettingScreen(navController) }
         composable(Routes.ADMIN) { AdminScreen(navController) }
         composable(
-            "${Routes.DETAIL_ADMIN}?type={type}",
+            "${Routes.DETAIL_ADMIN}?${adminTypeArgs}={${adminTypeArgs}}",
             arguments = listOf(
-                navArgument(Routes.AdminKeys.type) { type = NavType.StringType },
+                navArgument(adminTypeArgs) { type = NavType.StringType },
             )
-        ) { backStackEntry ->
-            val adminType = backStackEntry.arguments?.getString(Routes.AdminKeys.type) ?: ""
-
-            AdminDetailScreen(navController, adminType)
+        ) {
+            AdminDetailScreen(navController)
+        }
+        composable(
+            "${Routes.DETAIL_ADMIN_MODIFY}?$dataArgs={$dataArgs}",
+            arguments = listOf(
+                navArgument(dataArgs) { type = NavType.StringType }
+            )
+        ) {
+            AdminDetailModify(navController)
         }
     }
 }

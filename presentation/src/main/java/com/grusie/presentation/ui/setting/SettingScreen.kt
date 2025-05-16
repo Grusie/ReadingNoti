@@ -20,8 +20,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +31,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,6 +48,7 @@ import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.common.CircleProgressBar
+import com.grusie.presentation.ui.common.CommonSwitch
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
 import kotlinx.coroutines.launch
@@ -214,16 +212,10 @@ fun TotalSettingListItem(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 if (settingMenu.radioButtonVisible) {
-                    Switch(
+                    CommonSwitch(
                         modifier = Modifier.align(Alignment.CenterVertically),
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.surface,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = Color.Gray.copy(alpha = 0.4f)
-                        ),
-                        checked = isRadioSelected,
-                        onCheckedChange = {
+                        isChecked = isRadioSelected,
+                        onCheckedChanged = {
                             scope.launch {
                                 totalAppSettingEnum.onRadioChanged(viewModel, !isRadioSelected)
                             }
@@ -286,16 +278,10 @@ fun AppSettingListItem(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Switch(
+                CommonSwitch(
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.surface,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = Color.White,
-                        uncheckedTrackColor = Color.Gray.copy(alpha = 0.4f)
-                    ),
-                    checked = isRadioSelected,
-                    onCheckedChange = {
+                    isChecked = isRadioSelected,
+                    onCheckedChanged = {
                         scope.launch {
                             viewModel?.onSettingRadioButtonChanged(
                                 appSetting.menuId,

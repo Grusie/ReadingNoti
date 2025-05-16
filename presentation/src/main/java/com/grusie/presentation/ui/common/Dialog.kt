@@ -43,7 +43,7 @@ fun OneButtonAlertDialog(
 fun TwoButtonAlertDialog(
     isShowDialog: Boolean,
     onClickConfirm: () -> Unit,
-    onClickCancel: () -> Unit = { },
+    onClickCancel: () -> Unit,
     onDismiss: (() -> Unit)? = null,
     title: String,
     content: String,

@@ -11,6 +11,10 @@
     <string name="common_error_title_msg">Error is Occurred.</string>
     <string name="common_error_data_not_found">Data not found.</string>
     <string name="common_error_network">A network error has occurred.</string>
+    <string name="common_error_data_not_matched">Data not matched.</string>
+    <string name="common_error_unknown_msg">An unknown error has occurred.</string>
+
+    <string name="manage_admin_remove_me_error">You cannot remove yourself.</string>
 
     <string name="title_setting">Setting</string>
     <string name="title_main">Home</string>
@@ -23,4 +27,10 @@
     <string name="manage_total_setting_content">You can manage all settings.</string>
     <string name="manage_app_setting_title">Manage App Settings</string>
     <string name="manage_app_setting_content">You can manage app settings.</string>
+
+    <string name="str_cancel">Cancel</string>
+    <string name="str_confirm">Confirm</string>
+
+    <string name="str_confirm_save">Would you like to save?</string>
+    <string name="str_cancel_save">Would you like to exit without saving?</string>
 </resources>

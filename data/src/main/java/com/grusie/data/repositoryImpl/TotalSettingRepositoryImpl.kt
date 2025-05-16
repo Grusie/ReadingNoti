@@ -1,5 +1,7 @@
 package com.grusie.data.repositoryImpl
 
+import com.grusie.core.common.ServerKey
+import com.grusie.core.common.SettingType
 import com.grusie.core.utils.Logger
 import com.grusie.data.data.DefaultValues
 import com.grusie.data.data.LocalPersonalSettingEntity
@@ -17,6 +19,20 @@ class TotalSettingRepositoryImpl @Inject constructor(
     private val totalSettingDataSource: TotalSettingDataSource,
     private val localTotalSettingDataSource: LocalTotalSettingDataSource
 ) : TotalSettingRepository {
+    override suspend fun getServerTotalSettingList(type: SettingType?): Result<List<DomainTotalSettingDto>> {
+        return try {
+            totalSettingDataSource.getTotalSettingList(type)
+                .map { list -> list.map { it.toDomain() } }
+        } catch (e: Exception) {
+            Logger.log(
+                Logger.LogType.LOG_TYPE_E,
+                this@TotalSettingRepositoryImpl::class.java.simpleName,
+                "${e.message}"
+            )
+            return Result.failure(e)
+        }
+    }
+
     override suspend fun initTotalSettingListUseCase() {
         try {
             val result = totalSettingDataSource.getTotalSettingList()
@@ -132,6 +148,24 @@ class TotalSettingRepositoryImpl @Inject constructor(
 
     override suspend fun setLocalPersonalSettingList(domainPersonalSettingList: List<DomainPersonalSettingDto>) {
         localTotalSettingDataSource.savePersonalSettingList(domainPersonalSettingList.map { it.toLocal() })
+    }
+
+    override suspend fun updateTotalSettingVisibility(
+        menuId: Int,
+        isVisible: Boolean
+    ): Result<Unit> {
+        return totalSettingDataSource.updateTotalSetting(
+            menuId,
+            field = mutableMapOf(ServerKey.TotalSetting.KEY_VISIBLE to isVisible).apply {
+                if (!isVisible) put(ServerKey.TotalSetting.KEY_INIT_ENABLED, false)
+            })
+    }
+
+    override suspend fun setTotalSetting(
+        initTotalSettingDto: DomainTotalSettingDto?,
+        domainTotalSettingDto: DomainTotalSettingDto
+    ): Result<Unit> {
+        return totalSettingDataSource.setTotalSetting(initTotalSettingDto, domainTotalSettingDto)
     }
 
     private suspend fun saveLocalTotalSettingList(localTotalSettingList: List<DomainTotalSettingDto>) {

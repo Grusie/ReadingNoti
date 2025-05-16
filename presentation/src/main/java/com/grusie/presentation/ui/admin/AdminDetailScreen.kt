@@ -1,13 +1,14 @@
 package com.grusie.presentation.ui.admin
 
+import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,20 +35,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainUserDto
 import com.grusie.presentation.R
+import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.AdminSettingEnum
+import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
+import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
+import com.grusie.presentation.ui.common.debounceClickable
+import kotlinx.serialization.json.Json
 
 @Composable
 fun AdminDetailScreen(
     navController: NavHostController,
-    adminType: String,
     viewModel: AdminViewModel = hiltViewModel()
 ) {
-    val adminTypeEnum = AdminSettingEnum.from(adminType)
     val context = LocalContext.current
     val uiState = viewModel.uiState.collectAsState().value
     var errorMsg by remember { mutableStateOf("") }
@@ -65,6 +70,21 @@ fun AdminDetailScreen(
                     is AdminEventState.Toast -> {
                         Toast.makeText(context, eventState.toastMsg, Toast.LENGTH_SHORT).show()
                     }
+
+                    is AdminEventState.Navigate -> {
+                        val fullRoute = buildString {
+                            append(eventState.route)
+                            if (eventState.args.isNotEmpty()) {
+                                append("?")
+                                append(eventState.args.entries.joinToString("&") { "${it.key}=${it.value}" })
+                            }
+                        }
+                        navController.navigate(fullRoute) {
+                            if (eventState.includeBackStack) {
+                                popUpTo(Routes.DETAIL_ADMIN) { inclusive = true }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -72,17 +92,21 @@ fun AdminDetailScreen(
 
     Scaffold(
         topBar = {
-            CommonTitleBar(title = adminTypeEnum.getTitle(context), navController = navController)
+            CommonTitleBar(
+                title = viewModel.adminTypeEnum?.getTitle(context) ?: "",
+                navController = navController
+            )
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            when (adminTypeEnum) {
+            if (viewModel.adminTypeEnum == null) return@Scaffold
+            when (viewModel.adminTypeEnum) {
                 AdminSettingEnum.MANAGE_ADMIN -> {
                     ManageAdminScreen(viewModel)
                 }
 
                 AdminSettingEnum.MANAGE_TOTAL_MENU -> {
-
+                    ManageTotalSettingScreen(viewModel)
                 }
 
                 AdminSettingEnum.MANAGE_ADD_APP -> {
@@ -107,12 +131,41 @@ fun AdminDetailScreen(
 }
 
 @Composable
+fun ManageTotalSettingScreen(viewModel: AdminViewModel? = null) {
+    val totalSettingList = viewModel?.totalSettingList?.collectAsState()?.value ?: emptyList()
+
+    LaunchedEffect(Unit) {
+        viewModel?.getTotalSettingList(SettingType.GENERAL)
+    }
+
+    LazyColumn() {
+        items(totalSettingList) {
+            TotalSettingListItem(it) { totalSetting ->
+                viewModel?.setEventState(
+                    AdminEventState.Navigate(
+                        Routes.DETAIL_ADMIN_MODIFY, mutableMapOf(
+                            Routes.Keys.EXTRA_DATA to Uri.encode(Json.encodeToString(totalSetting))
+                        )
+                    )
+                )
+            }
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+
+                thickness = 1.dp,
+            )
+        }
+    }
+}
+
+@Composable
 fun ManageAdminScreen(viewModel: AdminViewModel? = null) {
     val userList = viewModel?.userList?.collectAsState()?.value ?: emptyList()
 
-    LaunchedEffect(Unit) {
-        viewModel?.getUserList()
-    }
+//    LaunchedEffect(Unit) {
+//        viewModel?.getUserList()
+//    }
 
     LazyColumn() {
         var isFirstNormalUser = false
@@ -148,7 +201,7 @@ fun UserListItem(
         modifier = Modifier
             .defaultMinSize(minHeight = 60.dp)
             .fillMaxWidth()
-            .clickable {
+            .debounceClickable {
                 setAdmin(domainUserDto.uid, !domainUserDto.isAdmin)
             }
             .padding(vertical = 8.dp, horizontal = 12.dp),
@@ -186,6 +239,43 @@ fun UserListItem(
 }
 
 @Composable
+fun TotalSettingListItem(
+    totalSettingDto: UiTotalSettingDto,
+    navigateToModifyScreen: (UiTotalSettingDto) -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .debounceClickable {
+                navigateToModifyScreen(totalSettingDto)
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${totalSettingDto.totalAppSettingEnum?.name}(${totalSettingDto.menuId})",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = totalSettingDto.displayName,
+                fontSize = 14.sp,
+                overflow = TextOverflow.Ellipsis, maxLines = 1,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        Text(
+            text = if (totalSettingDto.isVisible) "ON" else "OFF",
+            color = if (totalSettingDto.isVisible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
 @Preview(showBackground = true)
 fun UserListItemPreview() {
     UserListItem(
@@ -195,5 +285,21 @@ fun UserListItemPreview() {
             name = "name 입니다.",
             isAdmin = true
         )
+    )
+}
+
+
+@Composable
+@Preview(showBackground = true)
+fun TotalSettingListItemPreview() {
+    val totalSettingDto = UiTotalSettingDto(
+        isVisible = true,
+        isInitEnabled = true,
+        description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
+        displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
+        totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED
+    )
+    TotalSettingListItem(
+        totalSettingDto
     )
 }

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.gms.serivces)
+    kotlin("plugin.serialization") version "2.1.20"
 }
 
 
@@ -101,4 +102,7 @@ dependencies {
 
     // coil
     implementation(libs.coil.compose)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization)
 }

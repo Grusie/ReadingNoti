@@ -9,11 +9,14 @@ import com.grusie.domain.usecase.totalSetting.ChangeSettingInfoUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.GetPersonalSettingUseCase
+import com.grusie.domain.usecase.totalSetting.GetServerTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.InitPersonalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.InitTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetPersonalSettingListUseCase
+import com.grusie.domain.usecase.totalSetting.SetTotalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
+import com.grusie.domain.usecase.totalSetting.UpdateTotalSettingVisibilityUseCase
 import com.grusie.domain.usecase.user.GetUserListUseCase
 import com.grusie.domain.usecase.user.IsAdminUseCase
 import com.grusie.domain.usecase.user.SetAdminUseCase
@@ -32,6 +35,9 @@ object UseCaseModule {
         totalSettingRepository: TotalSettingRepository
     ): TotalSettingUseCases {
         return TotalSettingUseCases(
+            getServerTotalSettingListUseCase = GetServerTotalSettingListUseCase(
+                totalSettingRepository
+            ),
             initTotalSettingListUseCase = InitTotalSettingListUseCase(totalSettingRepository),
             getLocalTotalSettingListUseCase = GetLocalTotalSettingListUseCase(totalSettingRepository),
             initPersonalSettingUseCase = InitPersonalSettingUseCase(totalSettingRepository),
@@ -43,7 +49,11 @@ object UseCaseModule {
             setPersonalSettingListUseCase = SetPersonalSettingListUseCase(totalSettingRepository),
             setLocalPersonalSettingListUseCase = SetLocalPersonalSettingListUseCase(
                 totalSettingRepository
-            )
+            ),
+            updateTotalSettingVisibilityUseCase = UpdateTotalSettingVisibilityUseCase(
+                totalSettingRepository
+            ),
+            setTotalSettingUseCase = SetTotalSettingUseCase(totalSettingRepository)
         )
     }
 

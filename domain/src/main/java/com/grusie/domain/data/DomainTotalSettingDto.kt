@@ -9,5 +9,6 @@ data class DomainTotalSettingDto(
     val displayName: String = "",
     val isInitEnabled: Boolean = false,
     val description: String = "",
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val packageName: String? = null
 )

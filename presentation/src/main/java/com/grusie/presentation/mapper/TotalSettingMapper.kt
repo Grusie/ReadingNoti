@@ -13,6 +13,20 @@ fun DomainTotalSettingDto.toUi(): UiTotalSettingDto {
         isInitEnabled = this.isInitEnabled,
         description = this.description,
         totalAppSettingEnum = TOTAL_APP_SETTING.getTotalAppSetting(this.menuId),
-        imageUrl = this.imageUrl
+        imageUrl = this.imageUrl,
+        packageName = this.packageName
+    )
+}
+
+fun UiTotalSettingDto.toDomain(): DomainTotalSettingDto {
+    return DomainTotalSettingDto(
+        menuId = this.menuId,
+        type = this.type,
+        isVisible = this.isVisible,
+        displayName = this.displayName,
+        isInitEnabled = this.isInitEnabled,
+        description = this.description,
+        imageUrl = this.imageUrl,
+        packageName = this.packageName
     )
 }
