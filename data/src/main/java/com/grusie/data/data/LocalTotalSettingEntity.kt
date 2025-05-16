@@ -16,5 +16,7 @@ data class LocalTotalSettingEntity(
     val displayName: String,
     val isInitEnabled: Boolean,
     val description: String,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val packageName: String?,
+    val docName: String
 )

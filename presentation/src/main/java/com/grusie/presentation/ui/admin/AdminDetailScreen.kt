@@ -2,6 +2,7 @@ package com.grusie.presentation.ui.admin
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,12 +30,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainUserDto
 import com.grusie.presentation.R
@@ -110,7 +116,7 @@ fun AdminDetailScreen(
                 }
 
                 AdminSettingEnum.MANAGE_ADD_APP -> {
-
+                    ManageAppScreen(viewModel)
                 }
             }
 
@@ -145,6 +151,35 @@ fun ManageTotalSettingScreen(viewModel: AdminViewModel? = null) {
                     AdminEventState.Navigate(
                         Routes.DETAIL_ADMIN_MODIFY, mutableMapOf(
                             Routes.Keys.EXTRA_DATA to Uri.encode(Json.encodeToString(totalSetting))
+                        )
+                    )
+                )
+            }
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+
+                thickness = 1.dp,
+            )
+        }
+    }
+}
+
+@Composable
+fun ManageAppScreen(viewModel: AdminViewModel? = null) {
+    val appList = viewModel?.totalSettingList?.collectAsState()?.value ?: emptyList()
+
+    LaunchedEffect(Unit) {
+        viewModel?.getTotalSettingList(SettingType.APP)
+    }
+
+    LazyColumn() {
+        items(appList) {
+            AppListItem(it) { appItem ->
+                viewModel?.setEventState(
+                    AdminEventState.Navigate(
+                        Routes.DETAIL_ADMIN_MODIFY, mutableMapOf(
+                            Routes.Keys.EXTRA_DATA to Uri.encode(Json.encodeToString(appItem))
                         )
                     )
                 )
@@ -246,10 +281,10 @@ fun TotalSettingListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
             .debounceClickable {
                 navigateToModifyScreen(totalSettingDto)
-            },
+            }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -270,6 +305,62 @@ fun TotalSettingListItem(
         Text(
             text = if (totalSettingDto.isVisible) "ON" else "OFF",
             color = if (totalSettingDto.isVisible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+fun AppListItem(
+    appItem: UiTotalSettingDto,
+    navigateToModifyScreen: (UiTotalSettingDto) -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .debounceClickable {
+                navigateToModifyScreen(appItem)
+            }
+            .padding(start = 20.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .size(24.dp),
+            painter = if(LocalInspectionMode.current){
+                painterResource(R.drawable.ic_image_placeholder)
+            } else {rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current)
+                    .data(appItem.imageUrl)
+                    .diskCachePolicy(CachePolicy.DISABLED)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .placeholder(R.drawable.ic_image_placeholder)
+                    .build()
+            )},
+            contentDescription = "app_icon"
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${appItem.packageName}(${appItem.menuId})",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = appItem.displayName,
+                fontSize = 14.sp,
+                overflow = TextOverflow.Ellipsis, maxLines = 1,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        Text(
+            text = if (appItem.isVisible) "ON" else "OFF",
+            color = if (appItem.isVisible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
             fontSize = 14.sp
         )
     }
@@ -300,6 +391,23 @@ fun TotalSettingListItemPreview() {
         totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED
     )
     TotalSettingListItem(
+        totalSettingDto
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+fun AppListItemPreview() {
+    val totalSettingDto = UiTotalSettingDto(
+        isVisible = true,
+        isInitEnabled = true,
+        description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
+        displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
+        totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED,
+        imageUrl = "imageUrl",
+        packageName = "com.grusie.readingnoti"
+    )
+    AppListItem(
         totalSettingDto
     )
 }

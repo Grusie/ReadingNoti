@@ -1,5 +1,7 @@
 package com.grusie.presentation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -19,7 +21,11 @@ fun AppNavHost(navController: NavHostController) {
     val adminTypeArgs = Routes.AdminKeys.EXTRA_ADMIN_TYPE
     val dataArgs = Routes.Keys.EXTRA_DATA
 
-    NavHost(navController, startDestination = Routes.SPLASH) {
+    NavHost(
+        navController,
+        startDestination = Routes.SPLASH,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None }) {
         composable(Routes.SPLASH) { SplashScreen(navController) }
         composable(Routes.LOGIN) { LoginScreen(navController) }
         composable(Routes.MAIN) { MainScreen(navController) }

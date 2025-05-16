@@ -2,18 +2,29 @@ package com.grusie.presentation.ui.admin
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.HorizontalDivider
@@ -31,15 +42,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.grusie.core.common.SettingFieldEnum
 import com.grusie.core.common.SettingType
+import com.grusie.core.utils.Logger
 import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.AdminSettingEnum
@@ -65,6 +84,22 @@ fun AdminDetailModify(
     var isShowErrorDialog by remember { mutableStateOf(false) }
     var isShowConfirmDialog by remember { mutableStateOf(false) }
     var isConfirmType by remember { mutableIntStateOf(0) }
+
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                if (detailTotalSettingDto != null) {
+                    onValueChanged(
+                        viewModel,
+                        detailTotalSettingDto,
+                        SettingFieldEnum.IMAGE_URL,
+                        uri.toString()
+                    )
+                }
+            } else {
+                Logger.e("AdminScreen", "imagePicker Error : imageUrl is Null")
+            }
+        }
 
     // 뒤로가기 버튼 눌렀을 때 저장 안 하냐는 Alert를 띄움
     BackHandler {
@@ -150,10 +185,10 @@ fun AdminDetailModify(
             detailTotalSettingDto?.let {
 
                 LazyColumn {
-                    items(if (it.type == SettingType.GENERAL) SettingFieldEnum.getGeneralField() else SettingFieldEnum.getAppField()) { item ->
-                        when (item.type) {
+                    items(if (it.type == SettingType.GENERAL) SettingFieldEnum.getGeneralField() else SettingFieldEnum.getAppField()) { settingFieldEnum ->
+                        when (settingFieldEnum.type) {
                             SettingFieldEnum.FieldType.BOOLEAN_TYPE -> {
-                                val (initChecked, isChecked) = when (item) {
+                                val (initChecked, isChecked) = when (settingFieldEnum) {
                                     SettingFieldEnum.VISIBLE -> Pair(
                                         viewModel.initDetailTotalSettingDto?.isVisible ?: false,
                                         detailTotalSettingDto.isVisible
@@ -169,13 +204,13 @@ fun AdminDetailModify(
 
                                 ModifyListBooleanItem(
                                     initChecked,
-                                    item,
+                                    settingFieldEnum,
                                     isChecked,
                                     onValueChanged = { isSelected ->
                                         onValueChanged(
                                             viewModel,
                                             detailTotalSettingDto,
-                                            item,
+                                            settingFieldEnum,
                                             content = isSelected
                                         )
                                     }
@@ -183,7 +218,7 @@ fun AdminDetailModify(
                             }
 
                             SettingFieldEnum.FieldType.STRING_TYPE -> {
-                                val (initContent, content) = when (item) {
+                                val (initContent, content) = when (settingFieldEnum) {
                                     SettingFieldEnum.DISPLAY_NAME -> Pair(
                                         viewModel.initDetailTotalSettingDto!!.displayName,
                                         detailTotalSettingDto.displayName
@@ -203,14 +238,14 @@ fun AdminDetailModify(
                                 }
 
                                 ModifyListStringItem(
-                                    item,
+                                    settingFieldEnum,
                                     initContent,
                                     content,
                                     onValueChanged = { contents ->
                                         onValueChanged(
                                             viewModel,
                                             detailTotalSettingDto,
-                                            item,
+                                            settingFieldEnum,
                                             content = contents
                                         )
                                     }
@@ -218,14 +253,33 @@ fun AdminDetailModify(
                             }
 
                             SettingFieldEnum.FieldType.FILE_TYPE -> {
-                                ModifyListFileItem(
-                                    detailTotalSettingDto,
-                                    item,
-                                    when (item) {
-                                        SettingFieldEnum.IMAGE_URL -> detailTotalSettingDto.imageUrl
-                                            ?: ""
+                                val (initContent, content) = when (settingFieldEnum) {
+                                    SettingFieldEnum.IMAGE_URL -> Pair(
+                                        viewModel.initDetailTotalSettingDto?.imageUrl ?: "",
+                                        detailTotalSettingDto.imageUrl ?: ""
+                                    )
 
-                                        else -> ""
+                                    else -> Pair("", "")
+                                }
+
+                                ModifyListFileItem(
+                                    initContent = initContent,
+                                    settingFieldEnum = settingFieldEnum,
+                                    content = content,
+                                    onFileAttached = {
+                                        pickMedia.launch(
+                                            PickVisualMediaRequest(
+                                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                                            )
+                                        )
+                                    },
+                                    onValueChanged = { contents ->
+                                        onValueChanged(
+                                            viewModel,
+                                            detailTotalSettingDto,
+                                            settingFieldEnum,
+                                            contents
+                                        )
                                     }
                                 )
                             }
@@ -359,7 +413,8 @@ fun ModifyListStringItem(
                             .size(16.dp)
                             .align(Alignment.CenterVertically),
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "isEditIcon"
+                        contentDescription = "isEditIcon",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Text(
@@ -413,6 +468,7 @@ private fun onValueChanged(
                 isInitEnabled = newIsInitEnabled
             )
         }
+
         SettingFieldEnum.ENABLED -> (content as? Boolean)?.let { totalSettingDto.copy(isInitEnabled = it) }
         SettingFieldEnum.PACKAGE -> (content as? String)?.let { totalSettingDto.copy(packageName = it) }
         SettingFieldEnum.IMAGE_URL -> (content as? String)?.let { totalSettingDto.copy(imageUrl = it) }
@@ -431,12 +487,169 @@ private fun onValueChanged(
 
 @Composable
 fun ModifyListFileItem(
-    totalSettingDto: UiTotalSettingDto,
+    initContent: String,
     settingFieldEnum: SettingFieldEnum,
     content: String,
-    onValueChanged: (UiTotalSettingDto) -> Unit = {}
+    onValueChanged: (String) -> Unit = {},
+    onFileAttached: () -> Unit = {}
 ) {
-    // TODO : 아이콘 등 이미지를 업로드 하는 방법 고안
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            Row() {
+                if (initContent != content) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .size(16.dp)
+                            .align(Alignment.CenterVertically),
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "isEditIcon",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Text(
+                    text = "${settingFieldEnum.title}(${settingFieldEnum.fieldName})",
+                    fontSize = 14.sp,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Text(
+                text = settingFieldEnum.description,
+                fontSize = 12.sp,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable {
+                            onFileAttached()
+                        }
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .defaultMinSize(minHeight = 48.dp)
+                        .padding(horizontal = 8.dp)
+                        .padding(4.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = content,
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Spacer(Modifier.width(4.dp))
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "iconModifyIcon"
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally),
+            ) {
+                Box(
+                    modifier = Modifier.size(72.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(60.dp),
+                        painter = if (LocalInspectionMode.current) {
+                            painterResource(R.drawable.ic_image_placeholder)
+                        } else {
+                            rememberAsyncImagePainter(
+                                ImageRequest.Builder(LocalContext.current)
+                                    .data(initContent)
+                                    .diskCachePolicy(CachePolicy.DISABLED)
+                                    .memoryCachePolicy(CachePolicy.DISABLED)
+                                    .placeholder(R.drawable.ic_image_placeholder)
+                                    .build()
+                            )
+                        },
+                        contentScale = ContentScale.Crop,
+                        contentDescription = "app_icon",
+                    )
+                }
+
+                if (initContent != content) {
+                    Icon(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(horizontal = 16.dp),
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "modifyCompareIcon"
+                    )
+                    Box(
+                        modifier = Modifier.size(72.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(60.dp),
+                            painter = if (LocalInspectionMode.current) {
+                                painterResource(R.drawable.ic_image_placeholder)
+                            } else {
+                                rememberAsyncImagePainter(
+                                    ImageRequest.Builder(LocalContext.current)
+                                        .data(content)
+                                        .diskCachePolicy(CachePolicy.DISABLED)
+                                        .memoryCachePolicy(CachePolicy.DISABLED)
+                                        .placeholder(R.drawable.ic_image_placeholder)
+                                        .build()
+                                )
+                            },
+                            contentDescription = "app_icon",
+                            contentScale = ContentScale.Crop
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .clip(RoundedCornerShape(50))
+                                .background(MaterialTheme.colorScheme.secondary)
+                                .clickable {
+                                    onValueChanged(initContent)
+                                }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "iconInit",
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -456,5 +669,16 @@ fun ModifyListStringItemPreview() {
         initContent = "initContents",
         settingFieldEnum = SettingFieldEnum.DISPLAY_NAME,
         content = "contents",
+    )
+}
+
+
+@Composable
+@Preview(showBackground = true)
+fun ModifyListFileItemPreview() {
+    ModifyListFileItem(
+        initContent = "initContents",
+        settingFieldEnum = SettingFieldEnum.DISPLAY_NAME,
+        content = "testPreview",
     )
 }

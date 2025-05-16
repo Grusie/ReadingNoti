@@ -9,9 +9,10 @@ class StorageRepositoryImpl @Inject constructor(
 ) : StorageRepository {
     override suspend fun uploadFileToStorage(
         bucketName: String,
+        prePath: String?,
         path: String,
         bytes: ByteArray
-    ): Result<Unit> {
-        return storageDataSource.uploadFile(bucketName, path, bytes)
+    ): Result<String> {
+        return storageDataSource.uploadFile(bucketName = bucketName, prePath = prePath, path = path, bytes = bytes)
     }
 }

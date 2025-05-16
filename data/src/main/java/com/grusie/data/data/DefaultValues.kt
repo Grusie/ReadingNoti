@@ -1,6 +1,7 @@
 package com.grusie.data.data
 
 import com.grusie.core.common.SettingType
+import com.grusie.core.common.TotalMenu
 
 object DefaultValues {
 
@@ -13,7 +14,9 @@ object DefaultValues {
             isVisible = true,
             type = SettingType.GENERAL,
             menuId = 100,
-            imageUrl = null
+            imageUrl = null,
+            packageName = null,
+            docName = TotalMenu.TOTAL_NOTI_ENABLED.name
         ),
         LocalTotalSettingEntity(
             description = "방해금지 시간을 설정 할 수 있습니다.",
@@ -22,7 +25,9 @@ object DefaultValues {
             isVisible = true,
             type = SettingType.GENERAL,
             menuId = 101,
-            imageUrl = null
+            imageUrl = null,
+            packageName = null,
+            docName = TotalMenu.FOCUS_MODE.name
         ),
         LocalTotalSettingEntity(
             description = "휴대폰을 재부팅 했을 때 리딩알리미를 자동으로 실행 할 것인지를 설정 할 수 있습니다.",
@@ -31,7 +36,9 @@ object DefaultValues {
             isVisible = true,
             type = SettingType.GENERAL,
             menuId = 102,
-            imageUrl = null
+            imageUrl = null,
+            packageName = null,
+            docName = TotalMenu.BOOT_ENABLED.name
         )
     )
 

@@ -1,21 +1,25 @@
 package com.grusie.presentation.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.grusie.domain.data.CustomException
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
+import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.ui.auth.LoginEventState
 import com.grusie.presentation.ui.auth.LoginUiState
 import com.grusie.presentation.ui.base.BaseViewModel
-import com.grusie.presentation.ui.setting.SettingEventState
+import com.grusie.presentation.utils.getErrorMsg
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val auth: FirebaseAuth,
     private val totalSettingUseCases: TotalSettingUseCases
 ) : BaseViewModel() {
@@ -72,7 +76,7 @@ class AuthViewModel @Inject constructor(
                         is CustomException.NetworkError -> {
                             auth.signOut()
                             // 네트워크 에러
-                            setEventState(LoginEventState.Error("네트워크를 확인해주세요."))
+                            setEventState(LoginEventState.Error(context.getString(R.string.common_error_network)))
                         }
 
                         is CustomException.NotFoundOnServer -> {
@@ -87,7 +91,7 @@ class AuthViewModel @Inject constructor(
 
                         else -> {
                             auth.signOut()
-                            setEventState(LoginEventState.Error("알 수 없는 오류가 발생했습니다."))
+                            setEventState(LoginEventState.Error(context.getString(R.string.common_error_unknown_msg)))
                         }
                     }
                     false
@@ -108,18 +112,9 @@ class AuthViewModel @Inject constructor(
                         setEventState(LoginEventState.Navigate(Routes.MAIN, true))
                     }.onFailure { e ->
                         setUiState(LoginUiState.Idle)
-                        when (e) {
-                            is CustomException.NetworkError -> {
-                                auth.signOut()
-                                // 네트워크 에러
-                                setEventState(LoginEventState.Error("네트워크를 확인해주세요."))
-                            }
 
-                            else -> {
-                                auth.signOut()
-                                setEventState(LoginEventState.Error("알 수 없는 오류가 발생했습니다."))
-                            }
-                        }
+                        auth.signOut()
+                        setEventState(LoginEventState.Error(e.getErrorMsg(context)))
                     }
                 } else {
                     totalSettingUseCases.setPersonalSettingListUseCase(
@@ -129,18 +124,9 @@ class AuthViewModel @Inject constructor(
                         setEventState(LoginEventState.Navigate(Routes.MAIN, true))
                     }.onFailure { e ->
                         setUiState(LoginUiState.Idle)
-                        when (e) {
-                            is CustomException.NetworkError -> {
-                                auth.signOut()
-                                // 네트워크 에러
-                                setEventState(LoginEventState.Error("네트워크를 확인해주세요."))
-                            }
 
-                            else -> {
-                                auth.signOut()
-                                setEventState(LoginEventState.Error("알 수 없는 오류가 발생했습니다."))
-                            }
-                        }
+                        auth.signOut()
+                        setEventState(LoginEventState.Error(e.getErrorMsg(context)))
                     }
                 }
             }

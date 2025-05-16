@@ -12,6 +12,7 @@ import com.grusie.domain.usecase.totalSetting.GetPersonalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.GetServerTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.InitPersonalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.InitTotalSettingListUseCase
+import com.grusie.domain.usecase.totalSetting.SaveLocalTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetTotalSettingUseCase
@@ -53,7 +54,8 @@ object UseCaseModule {
             updateTotalSettingVisibilityUseCase = UpdateTotalSettingVisibilityUseCase(
                 totalSettingRepository
             ),
-            setTotalSettingUseCase = SetTotalSettingUseCase(totalSettingRepository)
+            setTotalSettingUseCase = SetTotalSettingUseCase(totalSettingRepository),
+            saveLocalTotalSettingListUseCase = SaveLocalTotalSettingListUseCase(totalSettingRepository)
         )
     }
 

@@ -14,7 +14,7 @@ import com.grusie.data.mapper.RoomTypeConverter
 
 @Database(
     entities = [LocalTotalSettingEntity::class, LocalPersonalSettingEntity::class],
-    version = 3
+    version = 5
 )
 @TypeConverters(RoomTypeConverter::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -24,14 +24,26 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE total_setting ADD COLUMN type TEXT NOT NULL DEFAULT 'general'")
-                db.execSQL("ALTER TABLE personal_setting ADD COLUMN type TEXT NOT NULL DEFAULT 'general'")
+                db.execSQL("ALTER TABLE total_setting ADD COLUMN type TEXT NOT NULL DEFAULT 'GENERAL'")
+                db.execSQL("ALTER TABLE personal_setting ADD COLUMN type TEXT NOT NULL DEFAULT 'GENERAL'")
             }
         }
 
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE total_setting ADD COLUMN imageUrl TEXT")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE total_setting ADD COLUMN packageName TEXT")
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE total_setting ADD COLUMN docName TEXT NOT NULL DEFAULT ''")
             }
         }
     }

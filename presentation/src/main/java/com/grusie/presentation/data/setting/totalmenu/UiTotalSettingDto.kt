@@ -13,5 +13,6 @@ data class UiTotalSettingDto(
     val description: String = "",
     val totalAppSettingEnum: TOTAL_APP_SETTING? = null,
     val imageUrl: String? = null,
-    val packageName: String? = null
+    val packageName: String? = null,
+    val docName: String = ""
 )

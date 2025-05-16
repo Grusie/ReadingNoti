@@ -8,9 +8,10 @@ class UploadFileToStorageUseCase(
 ) {
     suspend operator fun invoke(
         bucketName: String = StorageConst.APP_ICON_BUCKET_NAME,
+        prePath: String?,
         path: String,
         bytes: ByteArray
-    ): Result<Unit> {
-        return repository.uploadFileToStorage(bucketName, path, bytes)
+    ): Result<String> {
+        return repository.uploadFileToStorage(bucketName = bucketName, prePath = prePath, path = path, bytes = bytes)
     }
 }

@@ -11,5 +11,6 @@ data class TotalSettingUseCases(
     val setPersonalSettingListUseCase: SetPersonalSettingListUseCase,
     val setLocalPersonalSettingListUseCase: SetLocalPersonalSettingListUseCase,
     val updateTotalSettingVisibilityUseCase: UpdateTotalSettingVisibilityUseCase,
-    val setTotalSettingUseCase: SetTotalSettingUseCase
+    val setTotalSettingUseCase: SetTotalSettingUseCase,
+    val saveLocalTotalSettingListUseCase: SaveLocalTotalSettingListUseCase
 )

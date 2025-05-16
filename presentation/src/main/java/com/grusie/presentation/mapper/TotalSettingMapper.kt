@@ -14,7 +14,8 @@ fun DomainTotalSettingDto.toUi(): UiTotalSettingDto {
         description = this.description,
         totalAppSettingEnum = TOTAL_APP_SETTING.getTotalAppSetting(this.menuId),
         imageUrl = this.imageUrl,
-        packageName = this.packageName
+        packageName = this.packageName,
+        docName = this.docName
     )
 }
 
@@ -27,6 +28,7 @@ fun UiTotalSettingDto.toDomain(): DomainTotalSettingDto {
         isInitEnabled = this.isInitEnabled,
         description = this.description,
         imageUrl = this.imageUrl,
-        packageName = this.packageName
+        packageName = this.packageName,
+        docName = this.docName
     )
 }

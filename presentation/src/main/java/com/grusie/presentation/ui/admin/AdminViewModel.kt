@@ -2,6 +2,7 @@ package com.grusie.presentation.ui.admin
 
 import android.content.Context
 import android.net.Uri
+import android.webkit.MimeTypeMap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -86,8 +87,10 @@ class AdminViewModel @Inject constructor(
     fun getTotalSettingList(type: SettingType) {
         viewModelScope.launch {
             setUiState(AdminUiState.Loading)
-            totalSettingUseCases.getServerTotalSettingListUseCase(type).onSuccess { list ->
-                _totalSettingList.value = list.map { it.toUi() }
+            totalSettingUseCases.getServerTotalSettingListUseCase().onSuccess { list ->
+                totalSettingUseCases.saveLocalTotalSettingListUseCase(list)
+
+                _totalSettingList.value = list.filter { it.type == type }.map { it.toUi() }
             }.onFailure { e ->
                 setEventState(AdminEventState.Error(errorMsg = e.getErrorMsg(context)))
             }
@@ -120,15 +123,39 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             setUiState(AdminUiState.Loading)
             _detailTotalSettingDto.value?.let {
-                totalSettingUseCases.setTotalSettingUseCase(
-                    initDetailTotalSettingDto?.toDomain(),
-                    it.toDomain()
-                )
-                    .onSuccess {
+                var imageUrl: String = initDetailTotalSettingDto?.imageUrl ?: ""
+
+                if (initDetailTotalSettingDto?.imageUrl != it.imageUrl) {
+                    val currentTimeMillis = System.currentTimeMillis()
+                    uploadImageToStorage(
+                        "${initDetailTotalSettingDto?.imageUrl}",
+                        "${it.menuId}_${currentTimeMillis}",
+                        Uri.parse(it.imageUrl)
+                    ).onSuccess { path ->
+                        imageUrl = path
+
+                        totalSettingUseCases.setTotalSettingUseCase(
+                            initDetailTotalSettingDto?.toDomain(),
+                            it.copy(imageUrl = imageUrl).toDomain()
+                        ).onSuccess {
+                            setEventState(AdminEventState.Success(SuccessType.SUCCESS_MODIFY))
+                        }.onFailure { e ->
+                            setEventState(AdminEventState.Error(e.getErrorMsg(context)))
+                        }
+
+                    }.onFailure {
+                        setEventState(AdminEventState.Error(Exception().getErrorMsg(context)))
+                    }
+                } else {
+                    totalSettingUseCases.setTotalSettingUseCase(
+                        initDetailTotalSettingDto?.toDomain(),
+                        it.copy(imageUrl = imageUrl).toDomain()
+                    ).onSuccess {
                         setEventState(AdminEventState.Success(SuccessType.SUCCESS_MODIFY))
                     }.onFailure { e ->
                         setEventState(AdminEventState.Error(e.getErrorMsg(context)))
                     }
+                }
             } ?: setEventState(AdminEventState.Error(Exception().getErrorMsg(context)))
             setUiState(AdminUiState.Idle)
         }
@@ -164,19 +191,24 @@ class AdminViewModel @Inject constructor(
      * @param path 스토리지 최하단 파일 이름
      * @param uri 이미지 경로
      */
-    fun uploadImageToStorage(path: String, uri: Uri) {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        val bytes = inputStream?.readBytes() ?: return
+    private suspend fun uploadImageToStorage(
+        prePath: String?,
+        path: String,
+        uri: Uri
+    ): Result<String> {
+        val contentResolver = context.contentResolver
+        val mimeType = contentResolver.getType(uri)
+        val extension = mimeType?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+            ?: return Result.failure(Exception())
 
-        viewModelScope.launch {
-            setUiState(AdminUiState.Loading)
-            storageUseCases.uploadFileToStorageUseCase(path = path, bytes = bytes).onSuccess {
-                setEventState(AdminEventState.Error(errorMsg = "성공"))
-            }.onFailure { e ->
-                setEventState(AdminEventState.Error(errorMsg = e.getErrorMsg(context)))
-            }
-            setUiState(AdminUiState.Idle)
-        }
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val bytes = inputStream?.readBytes() ?: return Result.failure(Exception())
+
+        return storageUseCases.uploadFileToStorageUseCase(
+            path = "$path.$extension",
+            prePath = prePath,
+            bytes = bytes
+        )
     }
 
     /**

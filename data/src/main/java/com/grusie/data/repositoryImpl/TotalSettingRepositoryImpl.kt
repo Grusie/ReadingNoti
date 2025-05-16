@@ -168,8 +168,8 @@ class TotalSettingRepositoryImpl @Inject constructor(
         return totalSettingDataSource.setTotalSetting(initTotalSettingDto, domainTotalSettingDto)
     }
 
-    private suspend fun saveLocalTotalSettingList(localTotalSettingList: List<DomainTotalSettingDto>) {
-        localTotalSettingDataSource.saveTotalSettingList(localTotalSettingList.map { it.toLocal() })
+    override suspend fun saveLocalTotalSettingList(domainTotalSettingList: List<DomainTotalSettingDto>) {
+        localTotalSettingDataSource.saveTotalSettingList(domainTotalSettingList.map { it.toLocal() })
     }
 
     private suspend fun deleteLocalTotalSettingList() {

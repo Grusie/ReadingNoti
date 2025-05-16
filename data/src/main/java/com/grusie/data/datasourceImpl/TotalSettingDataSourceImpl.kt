@@ -33,6 +33,8 @@ class TotalSettingDataSourceImpl @Inject constructor(
                 val displayName = doc.getString(ServerKey.TotalSetting.KEY_DISPLAY_NAME) ?: ""
                 val description = doc.getString(ServerKey.TotalSetting.KEY_DESCRIPTION) ?: ""
                 val imageUrl = doc.getString(ServerKey.TotalSetting.APP.KEY_IMAGE_URL)
+                val packageName = doc.getString(ServerKey.TotalSetting.APP.KEY_PACKAGE)
+                val docName = doc.id
 
 
                 if (type != null && type.name != serverType) {
@@ -46,7 +48,9 @@ class TotalSettingDataSourceImpl @Inject constructor(
                     displayName = displayName,
                     isInitEnabled = isInitEnabled,
                     description = description,
-                    imageUrl = imageUrl
+                    imageUrl = imageUrl,
+                    packageName = packageName,
+                    docName = docName
                 )
             }
 
@@ -122,8 +126,14 @@ class TotalSettingDataSourceImpl @Inject constructor(
     ): Result<Unit> {
         return try {
             if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
-            val totalMenu = TotalMenu.from(domainTotalSettingDto.menuId)
-                ?: throw CustomException.DataMatchingError
+
+            val docName =
+                if(domainTotalSettingDto.type == SettingType.GENERAL) {
+                    TotalMenu.from(domainTotalSettingDto.menuId)?.name
+                        ?: throw CustomException.DataMatchingError
+                } else {
+                    domainTotalSettingDto.docName
+                }
 
             if (initTotalSettingDto != null) {
                 val newMap = mutableMapOf<String, Any>().apply {
@@ -163,12 +173,12 @@ class TotalSettingDataSourceImpl @Inject constructor(
                     }
                 }
 
-                firestore.collection(CollectionKind.TOTAL_SETTING_LIST).document(totalMenu.name)
+                firestore.collection(CollectionKind.TOTAL_SETTING_LIST).document(docName)
                     .update(
                         newMap
                     ).await()
             } else {
-                firestore.collection(CollectionKind.TOTAL_SETTING_LIST).document(totalMenu.name)
+                firestore.collection(CollectionKind.TOTAL_SETTING_LIST).document(docName)
                     .set(
                         domainTotalSettingDto
                     ).await()

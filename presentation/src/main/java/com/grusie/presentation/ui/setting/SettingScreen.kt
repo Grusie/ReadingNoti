@@ -31,7 +31,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.presentation.R
@@ -256,9 +257,14 @@ fun AppSettingListItem(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .size(24.dp),
-                    painter = rememberAsyncImagePainter(appSetting.imageUrl),
-                    contentDescription = "app_icon",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+                    painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(appSetting.imageUrl)
+                            .diskCachePolicy(CachePolicy.DISABLED)
+                            .memoryCachePolicy(CachePolicy.DISABLED)
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .build()),
+                    contentDescription = "app_icon"
                 )
                 Spacer(Modifier.width(8.dp))
 

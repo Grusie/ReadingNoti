@@ -23,4 +23,7 @@ interface TotalSettingRepository {
         initTotalSettingDto: DomainTotalSettingDto?,
         domainTotalSettingDto: DomainTotalSettingDto
     ): Result<Unit>
+    suspend fun saveLocalTotalSettingList(
+        domainTotalSettingList: List<DomainTotalSettingDto>
+    )
 }

@@ -2,9 +2,6 @@ package com.grusie.presentation.ui.admin
 
 import android.content.Context
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -34,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.grusie.core.utils.Logger
 import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.AdminSettingEnum
@@ -48,15 +43,6 @@ fun AdminScreen(
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val pickMedia =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri != null) {
-                viewModel.uploadImageToStorage("test", uri)
-            } else {
-                Logger.e("AdminScreen", "imagePicker Error : imageUrl is Null")
-            }
-        }
-
     val uiState = viewModel.uiState.collectAsState().value
     var errorMsg by remember { mutableStateOf("") }
     var isShowErrorDialog by remember { mutableStateOf(false) }
@@ -119,11 +105,6 @@ fun AdminScreen(
                         )
                     }
                 }
-            }
-            Button(onClick = {
-                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }) {
-                Text(text = "이미지 선택 후 업로드")
             }
 
             when (uiState) {
