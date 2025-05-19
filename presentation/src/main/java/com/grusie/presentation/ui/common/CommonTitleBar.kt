@@ -38,6 +38,7 @@ data class TitleButtonItem(
     val onClick: () -> Unit,
     val text: String = "",
     val textColor: Color? = null,
+    val iconTint: Color? = null
 )
 
 @Composable
@@ -141,7 +142,7 @@ fun CommonTitleBar(
                                 Icon(
                                     painterResource(it),
                                     contentDescription = "right icon",
-                                    tint = MaterialTheme.colorScheme.onSurface
+                                    tint = titleButtonItem.iconTint ?: MaterialTheme.colorScheme.onSurface
                                 )
                             } ?: run {
                                 Box(

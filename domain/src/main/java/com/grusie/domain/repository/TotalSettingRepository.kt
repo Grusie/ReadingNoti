@@ -26,4 +26,7 @@ interface TotalSettingRepository {
     suspend fun saveLocalTotalSettingList(
         domainTotalSettingList: List<DomainTotalSettingDto>
     )
+    suspend fun deleteTotalSettingList(
+        domainTotalSettingDocNameList: List<String>
+    ): Result<Unit>
 }

@@ -16,12 +16,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -66,13 +68,7 @@ fun CommonSwitch(
 
 @Composable
 fun CommonTextField(
-    modifier: Modifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(10.dp))
-        .background(
-            MaterialTheme.colorScheme.surfaceContainer,
-            shape = RoundedCornerShape(10.dp)
-        ),
+    modifier: Modifier = Modifier,
     value: String,
     onValueChanged: (String) -> Unit = {},
     isTrailingVisible: Boolean = false,
@@ -84,14 +80,23 @@ fun CommonTextField(
         fontWeight = FontWeight(400),
         color = MaterialTheme.colorScheme.onSurface,
     ),
-    trailIcon: @Composable () -> Unit = @Composable {}
+    trailIcon: @Composable () -> Unit = @Composable {},
+    isEnabled: Boolean = true,
+    hint: String = ""
 ) {
     BasicTextField(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                if(isEnabled) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.6f),
+                shape = RoundedCornerShape(10.dp)
+            ),
         value = value,
         onValueChange = { contents -> onValueChanged(contents) },
         singleLine = singleLine,
-        textStyle = textStyle,
+        textStyle = if(isEnabled) textStyle else textStyle.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)),
+        enabled = isEnabled,
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
         decorationBox = { innerTextField ->
             Row(
                 modifier = Modifier
@@ -101,6 +106,12 @@ fun CommonTextField(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(modifier = Modifier.weight(1f)) {
+                    if(value.isEmpty()) {
+                        Text(
+                            text = hint,
+                            style = textStyle.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                        )
+                    }
                     innerTextField()
                 }
 
@@ -121,7 +132,8 @@ fun CommonTextField(
 fun CommonTextFieldPreview() {
     CommonTextField(
         value = "contents",
-        onValueChanged = {}
+        onValueChanged = {},
+        isEnabled = false
     )
 }
 

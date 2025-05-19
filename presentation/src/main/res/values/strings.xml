@@ -31,5 +31,6 @@
     <string name="str_confirm">확인</string>
 
     <string name="str_confirm_save">저장하시겠습니까?</string>
+    <string name="str_delete">삭제하시겠습니까?</string>
     <string name="str_cancel_save">저장하지 않고 나가시겠습니까?</string>
 </resources>

@@ -48,10 +48,10 @@ class AdminViewModel @Inject constructor(
     val adminTypeEnum = savedStateHandle.get<String>(Routes.AdminKeys.EXTRA_ADMIN_TYPE)
         ?.let { AdminSettingEnum.from(it) }
     val initDetailTotalSettingDto = savedStateHandle.get<String>(Routes.Keys.EXTRA_DATA)
-        ?.let { Json.decodeFromString<UiTotalSettingDto>(it) }
+        ?.let { try {Json.decodeFromString<UiTotalSettingDto>(it)} catch (e:Exception) {null} }
 
-    private val _detailTotalSettingDto: MutableStateFlow<UiTotalSettingDto?> =
-        MutableStateFlow(initDetailTotalSettingDto)
+    private val _detailTotalSettingDto: MutableStateFlow<UiTotalSettingDto> =
+        MutableStateFlow(initDetailTotalSettingDto ?: UiTotalSettingDto(isVisible = true, isInitEnabled = true, type = SettingType.APP))
     val detailTotalSettingDto: StateFlow<UiTotalSettingDto?> = _detailTotalSettingDto.asStateFlow()
 
     init {
@@ -99,18 +99,19 @@ class AdminViewModel @Inject constructor(
     }
 
     /**
-     * 특정 메뉴의 보여짐 여부를 처리 -> 보여짐 여부를 false로 할 경우, inInitEnabled도 자동으로 false가 된다.
+     * 신규 생성의 경우 menuId를 자동으로 설정해주기 위한 함수
+     * type을 받긴 하나, APP에서만 사용 될 듯함
      *
-     * @param menuId
-     * @param visibility
+     * @param type SettingType (GENERAL | APP)
      */
-    fun updateTotalSettingVisibility(menuId: Int, visibility: Boolean) {
+    fun setLastMenuId(type: SettingType) {
         viewModelScope.launch {
             setUiState(AdminUiState.Loading)
-            totalSettingUseCases.updateTotalSettingVisibilityUseCase(menuId, visibility).onSuccess {
-
-            }.onFailure { e ->
-                setEventState(AdminEventState.Error(e.getErrorMsg(context)))
+            totalSettingUseCases.getServerTotalSettingListUseCase().onSuccess { list ->
+                val newMenuId = list.filter { it.type == type }.maxOfOrNull { it.menuId }?.plus(1) ?: 10000
+                detailTotalSettingDto.value?.let { setDetailTotalSettingDto(it.copy(menuId = newMenuId)) }
+            }.onFailure {  e ->
+                setEventState(AdminEventState.Error(errorMsg = e.getErrorMsg(context)))
             }
             setUiState(AdminUiState.Idle)
         }
@@ -122,7 +123,7 @@ class AdminViewModel @Inject constructor(
     fun setTotalSettingChanged() {
         viewModelScope.launch {
             setUiState(AdminUiState.Loading)
-            _detailTotalSettingDto.value?.let {
+            _detailTotalSettingDto.value.let {
                 var imageUrl: String = initDetailTotalSettingDto?.imageUrl ?: ""
 
                 if (initDetailTotalSettingDto?.imageUrl != it.imageUrl) {
@@ -157,6 +158,42 @@ class AdminViewModel @Inject constructor(
                     }
                 }
             } ?: setEventState(AdminEventState.Error(Exception().getErrorMsg(context)))
+            setUiState(AdminUiState.Idle)
+        }
+    }
+
+    /**
+     * 저장할 수 있는 상태인지 확인
+     * 타이틀이나 타입이 앱일경우의 package명이 없을 경우 false를 리턴
+     *
+     * @return
+     */
+    fun isEnabledSave(): Boolean {
+        _detailTotalSettingDto.value.run {
+            if(displayName.isEmpty()) {
+                return false
+            }
+
+            if(type == SettingType.APP) {
+                if(packageName.isNullOrEmpty()) return false
+            }
+            return true
+        }
+    }
+
+    /**
+     * 현재 설정정보를 삭제한다. (APP일 때에만 처리)
+     */
+    fun deleteTotalSetting() {
+        viewModelScope.launch {
+            setUiState(AdminUiState.Loading)
+            _detailTotalSettingDto.value.let {
+                totalSettingUseCases.deleteTotalSettingListUseCase(listOf(it.docName))
+            }.onSuccess {
+                setEventState(AdminEventState.Success(SuccessType.SUCCESS_DELETE))
+            }.onFailure { e ->
+                setEventState(AdminEventState.Error(e.getErrorMsg(context)))
+            }
             setUiState(AdminUiState.Idle)
         }
     }
@@ -223,9 +260,11 @@ class AdminViewModel @Inject constructor(
     object ConfirmType {
         const val CONFIRM = 1
         const val CANCEL = 2
+        const val DELETE = 3
     }
 
     object SuccessType {
         const val SUCCESS_MODIFY = 100
+        const val SUCCESS_DELETE = 101
     }
 }

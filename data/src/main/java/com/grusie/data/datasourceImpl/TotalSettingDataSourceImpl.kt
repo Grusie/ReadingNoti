@@ -35,6 +35,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
                 val imageUrl = doc.getString(ServerKey.TotalSetting.APP.KEY_IMAGE_URL)
                 val packageName = doc.getString(ServerKey.TotalSetting.APP.KEY_PACKAGE)
                 val docName = doc.id
+                val isTintUse = doc.getBoolean(ServerKey.TotalSetting.APP.KEY_IS_TINT_USE) ?: false
 
 
                 if (type != null && type.name != serverType) {
@@ -50,7 +51,8 @@ class TotalSettingDataSourceImpl @Inject constructor(
                     description = description,
                     imageUrl = imageUrl,
                     packageName = packageName,
-                    docName = docName
+                    docName = docName,
+                    isTintUse = isTintUse
                 )
             }
 
@@ -132,7 +134,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
                     TotalMenu.from(domainTotalSettingDto.menuId)?.name
                         ?: throw CustomException.DataMatchingError
                 } else {
-                    domainTotalSettingDto.docName
+                    domainTotalSettingDto.docName.ifEmpty { domainTotalSettingDto.menuId.toString() }
                 }
 
             if (initTotalSettingDto != null) {
@@ -201,6 +203,24 @@ class TotalSettingDataSourceImpl @Inject constructor(
 
             Result.success(Unit)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteTotalSettingList(domainTotalSettingDocNameList: List<String>): Result<Unit> {
+        return try {
+            if(!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+
+            domainTotalSettingDocNameList.forEach {
+                firestore
+                    .collection(CollectionKind.TOTAL_SETTING_LIST)
+                    .document(it)
+                    .delete()
+                    .await()
+            }
+
+            Result.success(Unit)
+        } catch (e:Exception) {
             Result.failure(e)
         }
     }

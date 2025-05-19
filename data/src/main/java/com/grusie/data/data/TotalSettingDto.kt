@@ -11,5 +11,6 @@ data class TotalSettingDto(
     var isInitEnabled: Boolean = false,
     var description: String = "",
     var imageUrl: String? = null,
-    var packageName: String? = null
+    var packageName: String? = null,
+    var isTintUse: Boolean = false
 )

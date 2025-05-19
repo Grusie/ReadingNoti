@@ -17,7 +17,8 @@ fun TotalSettingDto.toDomain(): DomainTotalSettingDto {
         description = this.description,
         imageUrl = this.imageUrl,
         packageName = this.packageName,
-        docName = this.docName
+        docName = this.docName,
+        isTintUse = this.isTintUse
     )
 }
 
@@ -31,7 +32,8 @@ fun LocalTotalSettingEntity.toDomain(): DomainTotalSettingDto {
         description = this.description,
         imageUrl = this.imageUrl,
         packageName = this.packageName,
-        docName = this.docName
+        docName = this.docName,
+        isTintUse = this.isTintUse
     )
 }
 
@@ -45,7 +47,8 @@ fun DomainTotalSettingDto.toLocal(): LocalTotalSettingEntity {
         description = this.description,
         imageUrl = this.imageUrl,
         packageName = this.packageName,
-        docName = this.docName
+        docName = this.docName,
+        isTintUse = this.isTintUse
     )
 }
 

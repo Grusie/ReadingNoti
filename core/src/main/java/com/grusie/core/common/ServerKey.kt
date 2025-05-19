@@ -12,6 +12,7 @@ object ServerKey {
         object APP {
             const val KEY_PACKAGE = "package"
             const val KEY_IMAGE_URL = "imageUrl"
+            const val KEY_IS_TINT_USE = "isTintUse"
         }
     }
 

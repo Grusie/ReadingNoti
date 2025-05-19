@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -264,7 +265,8 @@ fun AppSettingListItem(
                             .memoryCachePolicy(CachePolicy.DISABLED)
                             .placeholder(R.drawable.ic_image_placeholder)
                             .build()),
-                    contentDescription = "app_icon"
+                    contentDescription = "app_icon",
+                    colorFilter = if (appSetting.isTintUse) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
                 )
                 Spacer(Modifier.width(8.dp))
 

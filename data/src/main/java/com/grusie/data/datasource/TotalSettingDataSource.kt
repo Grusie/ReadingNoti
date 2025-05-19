@@ -20,4 +20,5 @@ interface TotalSettingDataSource {
     ): Result<Unit>
 
     suspend fun updateTotalSetting(menuId: Int, field: Map<String, Any>): Result<Unit>
+    suspend fun deleteTotalSettingList(domainTotalSettingDocNameList: List<String>): Result<Unit>
 }

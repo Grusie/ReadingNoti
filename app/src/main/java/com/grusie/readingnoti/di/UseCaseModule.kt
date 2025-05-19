@@ -6,6 +6,7 @@ import com.grusie.domain.repository.UserRepository
 import com.grusie.domain.usecase.storage.StorageUseCases
 import com.grusie.domain.usecase.storage.UploadFileToStorageUseCase
 import com.grusie.domain.usecase.totalSetting.ChangeSettingInfoUseCase
+import com.grusie.domain.usecase.totalSetting.DeleteTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.GetLocalTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.GetPersonalSettingUseCase
@@ -55,7 +56,8 @@ object UseCaseModule {
                 totalSettingRepository
             ),
             setTotalSettingUseCase = SetTotalSettingUseCase(totalSettingRepository),
-            saveLocalTotalSettingListUseCase = SaveLocalTotalSettingListUseCase(totalSettingRepository)
+            saveLocalTotalSettingListUseCase = SaveLocalTotalSettingListUseCase(totalSettingRepository),
+            deleteTotalSettingListUseCase = DeleteTotalSettingListUseCase(totalSettingRepository)
         )
     }
 

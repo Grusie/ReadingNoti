@@ -179,4 +179,8 @@ class TotalSettingRepositoryImpl @Inject constructor(
     private suspend fun saveLocalPersonalSettingList(localPersonalSettingList: List<LocalPersonalSettingEntity>) {
         localTotalSettingDataSource.savePersonalSettingList(localPersonalSettingList)
     }
+
+    override suspend fun deleteTotalSettingList(domainTotalSettingDocNameList: List<String>): Result<Unit> {
+        return totalSettingDataSource.deleteTotalSettingList(domainTotalSettingDocNameList)
+    }
 }

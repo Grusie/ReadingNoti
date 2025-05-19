@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
@@ -51,6 +52,7 @@ import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
+import com.grusie.presentation.ui.common.TitleButtonItem
 import com.grusie.presentation.ui.common.debounceClickable
 import kotlinx.serialization.json.Json
 
@@ -100,7 +102,19 @@ fun AdminDetailScreen(
         topBar = {
             CommonTitleBar(
                 title = viewModel.adminTypeEnum?.getTitle(context) ?: "",
-                navController = navController
+                navController = navController,
+                rightButton =
+                if (viewModel.adminTypeEnum == AdminSettingEnum.MANAGE_ADD_APP) listOf(
+                    TitleButtonItem(iconRes = R.drawable.ic_add, onClick = {
+                        viewModel.setEventState(
+                            AdminEventState.Navigate(
+                                Routes.DETAIL_ADMIN_MODIFY, mutableMapOf(
+                                    Routes.Keys.EXTRA_DATA to ""
+                                )
+                            )
+                        )
+                    })
+                ) else null
             )
         }
     ) { paddingValues ->
@@ -328,17 +342,20 @@ fun AppListItem(
             modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .size(24.dp),
-            painter = if(LocalInspectionMode.current){
+            painter = if (LocalInspectionMode.current) {
                 painterResource(R.drawable.ic_image_placeholder)
-            } else {rememberAsyncImagePainter(
-                ImageRequest.Builder(LocalContext.current)
-                    .data(appItem.imageUrl)
-                    .diskCachePolicy(CachePolicy.DISABLED)
-                    .memoryCachePolicy(CachePolicy.DISABLED)
-                    .placeholder(R.drawable.ic_image_placeholder)
-                    .build()
-            )},
-            contentDescription = "app_icon"
+            } else {
+                rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(appItem.imageUrl)
+                        .diskCachePolicy(CachePolicy.DISABLED)
+                        .memoryCachePolicy(CachePolicy.DISABLED)
+                        .placeholder(R.drawable.ic_image_placeholder)
+                        .build()
+                )
+            },
+            contentDescription = "app_icon",
+            colorFilter = if (appItem.isTintUse) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
         )
 
         Spacer(Modifier.width(8.dp))

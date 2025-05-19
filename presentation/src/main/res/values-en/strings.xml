@@ -32,5 +32,6 @@
     <string name="str_confirm">Confirm</string>
 
     <string name="str_confirm_save">Would you like to save?</string>
+    <string name="str_delete">Would you like to delete?</string>
     <string name="str_cancel_save">Would you like to exit without saving?</string>
 </resources>
