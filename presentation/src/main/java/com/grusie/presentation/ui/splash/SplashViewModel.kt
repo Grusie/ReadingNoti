@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import com.grusie.presentation.Routes
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -26,7 +28,7 @@ class SplashViewModel @Inject constructor(
 
     private fun initSetting() {
         viewModelScope.launch {
-            setUiState(SplashUiState.Loading)
+            setUiState(BaseUiState.Loading)
 
             val startTime = System.currentTimeMillis() // 서버 통신 시작 시간 기록
 
@@ -45,12 +47,12 @@ class SplashViewModel @Inject constructor(
 
 
             if (auth.currentUser != null) {
-                setEventState(SplashEventState.Navigate(Routes.MAIN, true))
+                setEventState(BaseEventState.Navigate(Routes.MAIN, true))
             } else {
-                setEventState(SplashEventState.Navigate(Routes.LOGIN, true))
+                setEventState(BaseEventState.Navigate(Routes.LOGIN, true))
             }
 
-            setUiState(SplashUiState.Idle)
+            setUiState(BaseUiState.Idle)
         }
     }
 
@@ -63,7 +65,7 @@ class SplashViewModel @Inject constructor(
         } catch (e: Exception) {
             // 로그인이 되어 있고, 로컬DB에 값이 없고, 서버통신을 진행하려는데 에러가 발생한 경우
             // 이런 경우에만 유일하게 앱을 실행하지 못 하도록 처리
-            setEventState(SplashEventState.Error("로그인 처리 과정에서 에러가 발생했습니다.", true))
+            setEventState(SplashEventState.FinishableError("로그인 처리 과정에서 에러가 발생했습니다.", true))
         }
     }
 }

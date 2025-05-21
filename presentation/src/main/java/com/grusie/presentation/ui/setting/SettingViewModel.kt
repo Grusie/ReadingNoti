@@ -9,6 +9,8 @@ import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.mapper.toUi
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,7 +42,7 @@ class SettingViewModel @Inject constructor(
 
     private fun requestTotalSettingList() {
         viewModelScope.launch {
-            setUiState(SettingUiState.Loading)
+            setUiState(BaseUiState.Loading)
             val totalSettingListDeferred =
                 async { totalSettingUseCases.getLocalTotalSettingListUseCase() }
             val personalSettingListDeferred =
@@ -66,11 +68,11 @@ class SettingViewModel @Inject constructor(
             }
             _settingSwitchStates.emit(newSwitchStates)
 
-            setUiState(SettingUiState.Idle)
+            setUiState(BaseUiState.Idle)
 
             if (mergedList.isEmpty()) {
                 // 설정 전체 리스트는 비어있으면 안 되는데 비어있는 경우가 발생한 것으로 에러로 표현
-                setEventState(SettingEventState.Error("알 수 없는 에러가 발생했습니다."))
+                setEventState(BaseEventState.Error("알 수 없는 에러가 발생했습니다."))
             } else {
                 _settingMergedList.emit(mergedList)
             }
@@ -81,7 +83,7 @@ class SettingViewModel @Inject constructor(
         menuId: Int,
         isSelected: Boolean
     ) {
-        setUiState(SettingUiState.Loading)
+        setUiState(BaseUiState.Loading)
 
         totalSettingUseCases.changeSettingInfoUseCase(
             auth.currentUser?.uid,
@@ -92,7 +94,7 @@ class SettingViewModel @Inject constructor(
                 this[menuId] = isSelected
             }
         }
-        setUiState(SettingUiState.Idle)
+        setUiState(BaseUiState.Idle)
     }
 
     suspend fun onSettingClick(totalAppSetting: TOTAL_APP_SETTING) {

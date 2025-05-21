@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -26,6 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,21 +85,32 @@ fun CommonTextField(
     ),
     trailIcon: @Composable () -> Unit = @Composable {},
     isEnabled: Boolean = true,
-    hint: String = ""
+    hint: String = "",
+    isPasswordStyle: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     BasicTextField(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(
-                if(isEnabled) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.6f),
+                if (isEnabled) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainer.copy(
+                    alpha = 0.6f
+                ),
                 shape = RoundedCornerShape(10.dp)
             ),
         value = value,
         onValueChange = { contents -> onValueChanged(contents) },
         singleLine = singleLine,
-        textStyle = if(isEnabled) textStyle else textStyle.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)),
+        textStyle = if (isEnabled) textStyle else textStyle.copy(
+            color = MaterialTheme.colorScheme.onSurface.copy(
+                alpha = 0.6f
+            )
+        ),
         enabled = isEnabled,
         cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+        visualTransformation = if (isPasswordStyle) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = keyboardOptions,
         decorationBox = { innerTextField ->
             Row(
                 modifier = Modifier
@@ -106,16 +120,20 @@ fun CommonTextField(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(modifier = Modifier.weight(1f)) {
-                    if(value.isEmpty()) {
+                    if (value.isEmpty()) {
                         Text(
                             text = hint,
-                            style = textStyle.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                            style = textStyle.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.4f
+                                )
+                            )
                         )
                     }
                     innerTextField()
                 }
 
-                if(isTrailingVisible)
+                if (isTrailingVisible)
                     IconButton(
                         modifier = Modifier.size(40.dp), onClick = {
                             trailButtonClick()

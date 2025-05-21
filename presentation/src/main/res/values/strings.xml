@@ -33,4 +33,9 @@
     <string name="str_confirm_save">저장하시겠습니까?</string>
     <string name="str_delete">삭제하시겠습니까?</string>
     <string name="str_cancel_save">저장하지 않고 나가시겠습니까?</string>
+
+    <string name="str_login">로그인</string>
+    <string name="str_id_hint">아이디</string>
+    <string name="str_password_hint">비밀번호</string>
+    <string name="str_sign_up">회원가입</string>
 </resources>

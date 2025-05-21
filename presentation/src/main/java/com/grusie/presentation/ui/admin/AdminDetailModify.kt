@@ -73,6 +73,8 @@ import com.grusie.core.utils.Logger
 import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonSwitch
 import com.grusie.presentation.ui.common.CommonTextField
@@ -122,16 +124,16 @@ fun AdminDetailModify(
         viewModel.eventState.collect { eventState ->
             if (eventState != null) {
                 when (eventState) {
-                    is AdminEventState.Error -> {
+                    is BaseEventState.Error -> {
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
                     }
 
-                    is AdminEventState.Toast -> {
+                    is BaseEventState.Toast -> {
                         Toast.makeText(context, eventState.toastMsg, Toast.LENGTH_SHORT).show()
                     }
 
-                    is AdminEventState.Navigate -> {
+                    is BaseEventState.Navigate -> {
                         val fullRoute = buildString {
                             append(eventState.route)
                             if (eventState.args.isNotEmpty()) {
@@ -154,8 +156,8 @@ fun AdminDetailModify(
                     }
 
                     is AdminEventState.Success -> {
-                        when (eventState.data) {
-                            AdminViewModel.SuccessType.SUCCESS_MODIFY, AdminViewModel.SuccessType.SUCCESS_DELETE-> navController.popBackStack()
+                        when (eventState.successType) {
+                            AdminViewModel.SuccessType.SUCCESS_MODIFY, AdminViewModel.SuccessType.SUCCESS_DELETE -> navController.popBackStack()
                         }
                     }
                 }
@@ -175,7 +177,7 @@ fun AdminDetailModify(
                 )
             ),
             rightButton = buildList {
-                if(viewModel.initDetailTotalSettingDto != null && viewModel.initDetailTotalSettingDto.type == SettingType.APP) {
+                if (viewModel.initDetailTotalSettingDto != null && viewModel.initDetailTotalSettingDto.type == SettingType.APP) {
                     add(
                         TitleButtonItem(iconRes = R.drawable.ic_delete, {
                             viewModel.setEventState(AdminEventState.Confirm(AdminViewModel.ConfirmType.DELETE))
@@ -184,8 +186,8 @@ fun AdminDetailModify(
                 }
                 add(
                     TitleButtonItem(iconRes = R.drawable.ic_save, {
-                        if(!viewModel.isEnabledSave()) {
-                            viewModel.setEventState(AdminEventState.Toast("필수 데이터를 입력해주세요."))
+                        if (!viewModel.isEnabledSave()) {
+                            viewModel.setEventState(BaseEventState.Toast("필수 데이터를 입력해주세요."))
                         } else {
                             viewModel.setEventState(AdminEventState.Confirm(AdminViewModel.ConfirmType.CONFIRM))
                         }
@@ -367,7 +369,7 @@ fun AdminDetailModify(
             }
 
             when (uiState) {
-                AdminUiState.Loading -> {
+                BaseUiState.Loading -> {
                     CircleProgressBar()
                 }
             }
@@ -507,9 +509,11 @@ fun ModifyListStringItem(
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
-                if(settingFieldEnum.isEssential) {
+                if (settingFieldEnum.isEssential) {
                     Icon(
-                        modifier = Modifier.padding(start = 4.dp).size(20.dp),
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(20.dp),
                         imageVector = if (content.isEmpty()) Icons.Default.Warning else Icons.Default.CheckCircle,
                         tint = if (content.isEmpty()) Color.Red else Color.Cyan,
                         contentDescription = "isEssentialIcon"

@@ -22,4 +22,8 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun setAdmin(uid: String, isAdmin: Boolean): Result<Unit> {
         return userDataSource.setAdmin(uid, isAdmin)
     }
+
+    override suspend fun initUser(domainUserDto: DomainUserDto): Result<Unit> {
+        return userDataSource.initUser(domainUserDto)
+    }
 }

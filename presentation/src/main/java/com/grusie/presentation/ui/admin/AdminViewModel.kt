@@ -17,6 +17,8 @@ import com.grusie.presentation.data.setting.AdminSettingEnum
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.mapper.toDomain
 import com.grusie.presentation.mapper.toUi
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
 import com.grusie.presentation.utils.getErrorMsg
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,10 +50,22 @@ class AdminViewModel @Inject constructor(
     val adminTypeEnum = savedStateHandle.get<String>(Routes.AdminKeys.EXTRA_ADMIN_TYPE)
         ?.let { AdminSettingEnum.from(it) }
     val initDetailTotalSettingDto = savedStateHandle.get<String>(Routes.Keys.EXTRA_DATA)
-        ?.let { try {Json.decodeFromString<UiTotalSettingDto>(it)} catch (e:Exception) {null} }
+        ?.let {
+            try {
+                Json.decodeFromString<UiTotalSettingDto>(it)
+            } catch (e: Exception) {
+                null
+            }
+        }
 
     private val _detailTotalSettingDto: MutableStateFlow<UiTotalSettingDto> =
-        MutableStateFlow(initDetailTotalSettingDto ?: UiTotalSettingDto(isVisible = true, isInitEnabled = true, type = SettingType.APP))
+        MutableStateFlow(
+            initDetailTotalSettingDto ?: UiTotalSettingDto(
+                isVisible = true,
+                isInitEnabled = true,
+                type = SettingType.APP
+            )
+        )
     val detailTotalSettingDto: StateFlow<UiTotalSettingDto?> = _detailTotalSettingDto.asStateFlow()
 
     init {
@@ -72,29 +86,29 @@ class AdminViewModel @Inject constructor(
      */
     private fun getUserList() {
         viewModelScope.launch {
-            setUiState(AdminUiState.Loading)
+            setUiState(BaseUiState.Loading)
             userUseCases.getUserListUseCase().onSuccess { list ->
                 _userList.value = list.sortedWith(
                     compareByDescending<DomainUserDto> { it.isAdmin }.thenBy { it.name }
                 )
             }.onFailure { e ->
-                setEventState(AdminEventState.Error(errorMsg = e.getErrorMsg(context)))
+                setEventState(BaseEventState.Error(errorMsg = e.getErrorMsg(context)))
             }
-            setUiState(AdminUiState.Idle)
+            setUiState(BaseUiState.Idle)
         }
     }
 
     fun getTotalSettingList(type: SettingType) {
         viewModelScope.launch {
-            setUiState(AdminUiState.Loading)
+            setUiState(BaseUiState.Loading)
             totalSettingUseCases.getServerTotalSettingListUseCase().onSuccess { list ->
                 totalSettingUseCases.saveLocalTotalSettingListUseCase(list)
 
                 _totalSettingList.value = list.filter { it.type == type }.map { it.toUi() }
             }.onFailure { e ->
-                setEventState(AdminEventState.Error(errorMsg = e.getErrorMsg(context)))
+                setEventState(BaseEventState.Error(errorMsg = e.getErrorMsg(context)))
             }
-            setUiState(AdminUiState.Idle)
+            setUiState(BaseUiState.Idle)
         }
     }
 
@@ -106,14 +120,15 @@ class AdminViewModel @Inject constructor(
      */
     fun setLastMenuId(type: SettingType) {
         viewModelScope.launch {
-            setUiState(AdminUiState.Loading)
+            setUiState(BaseUiState.Loading)
             totalSettingUseCases.getServerTotalSettingListUseCase().onSuccess { list ->
-                val newMenuId = list.filter { it.type == type }.maxOfOrNull { it.menuId }?.plus(1) ?: 10000
+                val newMenuId =
+                    list.filter { it.type == type }.maxOfOrNull { it.menuId }?.plus(1) ?: 10000
                 detailTotalSettingDto.value?.let { setDetailTotalSettingDto(it.copy(menuId = newMenuId)) }
-            }.onFailure {  e ->
-                setEventState(AdminEventState.Error(errorMsg = e.getErrorMsg(context)))
+            }.onFailure { e ->
+                setEventState(BaseEventState.Error(errorMsg = e.getErrorMsg(context)))
             }
-            setUiState(AdminUiState.Idle)
+            setUiState(BaseUiState.Idle)
         }
     }
 
@@ -122,7 +137,7 @@ class AdminViewModel @Inject constructor(
      */
     fun setTotalSettingChanged() {
         viewModelScope.launch {
-            setUiState(AdminUiState.Loading)
+            setUiState(BaseUiState.Loading)
             _detailTotalSettingDto.value.let {
                 var imageUrl: String = initDetailTotalSettingDto?.imageUrl ?: ""
 
@@ -141,11 +156,11 @@ class AdminViewModel @Inject constructor(
                         ).onSuccess {
                             setEventState(AdminEventState.Success(SuccessType.SUCCESS_MODIFY))
                         }.onFailure { e ->
-                            setEventState(AdminEventState.Error(e.getErrorMsg(context)))
+                            setEventState(BaseEventState.Error(e.getErrorMsg(context)))
                         }
 
                     }.onFailure {
-                        setEventState(AdminEventState.Error(Exception().getErrorMsg(context)))
+                        setEventState(BaseEventState.Error(Exception().getErrorMsg(context)))
                     }
                 } else {
                     totalSettingUseCases.setTotalSettingUseCase(
@@ -154,11 +169,11 @@ class AdminViewModel @Inject constructor(
                     ).onSuccess {
                         setEventState(AdminEventState.Success(SuccessType.SUCCESS_MODIFY))
                     }.onFailure { e ->
-                        setEventState(AdminEventState.Error(e.getErrorMsg(context)))
+                        setEventState(BaseEventState.Error(e.getErrorMsg(context)))
                     }
                 }
-            } ?: setEventState(AdminEventState.Error(Exception().getErrorMsg(context)))
-            setUiState(AdminUiState.Idle)
+            } ?: setEventState(BaseEventState.Error(Exception().getErrorMsg(context)))
+            setUiState(BaseUiState.Idle)
         }
     }
 
@@ -170,12 +185,12 @@ class AdminViewModel @Inject constructor(
      */
     fun isEnabledSave(): Boolean {
         _detailTotalSettingDto.value.run {
-            if(displayName.isEmpty()) {
+            if (displayName.isEmpty()) {
                 return false
             }
 
-            if(type == SettingType.APP) {
-                if(packageName.isNullOrEmpty()) return false
+            if (type == SettingType.APP) {
+                if (packageName.isNullOrEmpty()) return false
             }
             return true
         }
@@ -186,15 +201,15 @@ class AdminViewModel @Inject constructor(
      */
     fun deleteTotalSetting() {
         viewModelScope.launch {
-            setUiState(AdminUiState.Loading)
+            setUiState(BaseUiState.Loading)
             _detailTotalSettingDto.value.let {
                 totalSettingUseCases.deleteTotalSettingListUseCase(listOf(it.docName))
             }.onSuccess {
                 setEventState(AdminEventState.Success(SuccessType.SUCCESS_DELETE))
             }.onFailure { e ->
-                setEventState(AdminEventState.Error(e.getErrorMsg(context)))
+                setEventState(BaseEventState.Error(e.getErrorMsg(context)))
             }
-            setUiState(AdminUiState.Idle)
+            setUiState(BaseUiState.Idle)
         }
     }
 
@@ -206,18 +221,18 @@ class AdminViewModel @Inject constructor(
      */
     fun setAdmin(uid: String, isAdmin: Boolean) {
         viewModelScope.launch {
-            setUiState(AdminUiState.Loading)
+            setUiState(BaseUiState.Loading)
 
             if (uid == auth.currentUser?.uid && !isAdmin) {
-                setEventState(AdminEventState.Error(errorMsg = context.getString(R.string.manage_admin_remove_me_error)))
+                setEventState(BaseEventState.Error(errorMsg = context.getString(R.string.manage_admin_remove_me_error)))
             } else {
                 userUseCases.setAdminUseCase(uid, isAdmin).onSuccess {
                     getUserList()
                 }.onFailure { e ->
-                    setEventState(AdminEventState.Error(errorMsg = e.getErrorMsg(context)))
+                    setEventState(BaseEventState.Error(errorMsg = e.getErrorMsg(context)))
                 }
             }
-            setUiState(AdminUiState.Idle)
+            setUiState(BaseUiState.Idle)
         }
     }
 

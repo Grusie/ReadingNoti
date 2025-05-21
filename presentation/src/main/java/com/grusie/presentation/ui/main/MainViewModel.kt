@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.grusie.core.utils.Logger
 import com.grusie.domain.usecase.user.UserUseCases
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
 import com.grusie.presentation.utils.getErrorMsg
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +34,7 @@ class MainViewModel @Inject constructor(
     private suspend fun checkAdmin() {
 
         viewModelScope.launch {
-            setUiState(MainUiState.Loading)
+            setUiState(BaseUiState.Loading)
 
             auth.currentUser?.let {
                 userUseCases.isAdminUseCase(it.uid).onSuccess { isAdmin ->
@@ -48,7 +49,7 @@ class MainViewModel @Inject constructor(
                     )
                 }
             }
-            setUiState(MainUiState.Idle)
+            setUiState(BaseUiState.Idle)
         }
     }
 }

@@ -33,6 +33,8 @@ import androidx.navigation.NavHostController
 import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.AdminSettingEnum
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
@@ -51,16 +53,16 @@ fun AdminScreen(
         viewModel.eventState.collect { eventState ->
             if (eventState != null) {
                 when (eventState) {
-                    is AdminEventState.Error -> {
+                    is BaseEventState.Error -> {
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
                     }
 
-                    is AdminEventState.Toast -> {
+                    is BaseEventState.Toast -> {
                         Toast.makeText(context, eventState.toastMsg, Toast.LENGTH_SHORT).show()
                     }
 
-                    is AdminEventState.Navigate -> {
+                    is BaseEventState.Navigate -> {
                         val fullRoute = buildString {
                             append(eventState.route)
                             if (eventState.args.isNotEmpty()) {
@@ -108,7 +110,7 @@ fun AdminScreen(
             }
 
             when (uiState) {
-                AdminUiState.Loading -> {
+                BaseUiState.Loading -> {
                     CircleProgressBar()
                 }
             }
@@ -137,7 +139,7 @@ fun AdminSettingListItem(
             .clickable {
                 viewModel?.run {
                     setEventState(
-                        AdminEventState.Navigate(
+                        BaseEventState.Navigate(
                             Routes.DETAIL_ADMIN,
                             args = mapOf(Routes.AdminKeys.EXTRA_ADMIN_TYPE to type.name)
                         )

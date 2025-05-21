@@ -20,6 +20,7 @@ import com.grusie.domain.usecase.totalSetting.SetTotalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import com.grusie.domain.usecase.totalSetting.UpdateTotalSettingVisibilityUseCase
 import com.grusie.domain.usecase.user.GetUserListUseCase
+import com.grusie.domain.usecase.user.InitUserUseCase
 import com.grusie.domain.usecase.user.IsAdminUseCase
 import com.grusie.domain.usecase.user.SetAdminUseCase
 import com.grusie.domain.usecase.user.UserUseCases
@@ -56,7 +57,9 @@ object UseCaseModule {
                 totalSettingRepository
             ),
             setTotalSettingUseCase = SetTotalSettingUseCase(totalSettingRepository),
-            saveLocalTotalSettingListUseCase = SaveLocalTotalSettingListUseCase(totalSettingRepository),
+            saveLocalTotalSettingListUseCase = SaveLocalTotalSettingListUseCase(
+                totalSettingRepository
+            ),
             deleteTotalSettingListUseCase = DeleteTotalSettingListUseCase(totalSettingRepository)
         )
     }
@@ -77,7 +80,8 @@ object UseCaseModule {
         return UserUseCases(
             getUserListUseCase = GetUserListUseCase(userRepository),
             isAdminUseCase = IsAdminUseCase(userRepository),
-            setAdminUseCase = SetAdminUseCase(userRepository)
+            setAdminUseCase = SetAdminUseCase(userRepository),
+            initUserUseCase = InitUserUseCase(userRepository)
         )
     }
 }

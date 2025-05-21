@@ -21,6 +21,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.grusie.presentation.R
 import com.grusie.presentation.Routes
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
 import kotlin.system.exitProcess
@@ -41,7 +43,7 @@ fun SplashScreen(
         viewModel.eventState.collect { eventState ->
             if (eventState != null) {
                 when (eventState) {
-                    is SplashEventState.Navigate -> {
+                    is BaseEventState.Navigate -> {
                         navController.navigate(eventState.route) {
                             if (eventState.includeBackStack) {
                                 popUpTo(Routes.SPLASH) { inclusive = true }
@@ -49,7 +51,7 @@ fun SplashScreen(
                         }
                     }
 
-                    is SplashEventState.Error -> {
+                    is SplashEventState.FinishableError -> {
                         errorMsg = eventState.errorMsg
                         isFinishApp = eventState.isFinishApp
                         isShowErrorDialog = true
@@ -73,7 +75,7 @@ fun SplashScreen(
             }
 
             when (uiState) {
-                is SplashUiState.Loading -> {
+                is BaseUiState.Loading -> {
                     CircleProgressBar()
                 }
             }

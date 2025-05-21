@@ -22,4 +22,11 @@ object ServerKey {
         const val KEY_CUSTOM_DATA = "customData"
         const val KEY_TYPE = "type"
     }
+
+    object User {
+        const val KEY_UID = "uid"
+        const val KEY_EMAIL = "email"
+        const val KEY_IS_ADMIN = "isAdmin"
+        const val KEY_NAME = "name"
+    }
 }

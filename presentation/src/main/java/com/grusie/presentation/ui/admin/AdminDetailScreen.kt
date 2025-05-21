@@ -49,6 +49,8 @@ import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.AdminSettingEnum
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
@@ -70,16 +72,16 @@ fun AdminDetailScreen(
         viewModel.eventState.collect { eventState ->
             if (eventState != null) {
                 when (eventState) {
-                    is AdminEventState.Error -> {
+                    is BaseEventState.Error -> {
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
                     }
 
-                    is AdminEventState.Toast -> {
+                    is BaseEventState.Toast -> {
                         Toast.makeText(context, eventState.toastMsg, Toast.LENGTH_SHORT).show()
                     }
 
-                    is AdminEventState.Navigate -> {
+                    is BaseEventState.Navigate -> {
                         val fullRoute = buildString {
                             append(eventState.route)
                             if (eventState.args.isNotEmpty()) {
@@ -107,8 +109,8 @@ fun AdminDetailScreen(
                 if (viewModel.adminTypeEnum == AdminSettingEnum.MANAGE_ADD_APP) listOf(
                     TitleButtonItem(iconRes = R.drawable.ic_add, onClick = {
                         viewModel.setEventState(
-                            AdminEventState.Navigate(
-                                Routes.DETAIL_ADMIN_MODIFY, mutableMapOf(
+                            BaseEventState.Navigate(
+                                Routes.DETAIL_ADMIN_MODIFY, args = mutableMapOf(
                                     Routes.Keys.EXTRA_DATA to ""
                                 )
                             )
@@ -135,7 +137,7 @@ fun AdminDetailScreen(
             }
 
             when (uiState) {
-                AdminUiState.Loading -> {
+                BaseUiState.Loading -> {
                     CircleProgressBar()
                 }
             }
@@ -162,8 +164,8 @@ fun ManageTotalSettingScreen(viewModel: AdminViewModel? = null) {
         items(totalSettingList) {
             TotalSettingListItem(it) { totalSetting ->
                 viewModel?.setEventState(
-                    AdminEventState.Navigate(
-                        Routes.DETAIL_ADMIN_MODIFY, mutableMapOf(
+                    BaseEventState.Navigate(
+                        Routes.DETAIL_ADMIN_MODIFY, args = mutableMapOf(
                             Routes.Keys.EXTRA_DATA to Uri.encode(Json.encodeToString(totalSetting))
                         )
                     )
@@ -191,8 +193,8 @@ fun ManageAppScreen(viewModel: AdminViewModel? = null) {
         items(appList) {
             AppListItem(it) { appItem ->
                 viewModel?.setEventState(
-                    AdminEventState.Navigate(
-                        Routes.DETAIL_ADMIN_MODIFY, mutableMapOf(
+                    BaseEventState.Navigate(
+                        Routes.DETAIL_ADMIN_MODIFY, args = mutableMapOf(
                             Routes.Keys.EXTRA_DATA to Uri.encode(Json.encodeToString(appItem))
                         )
                     )

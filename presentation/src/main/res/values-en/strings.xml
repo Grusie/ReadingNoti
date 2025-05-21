@@ -34,4 +34,9 @@
     <string name="str_confirm_save">Would you like to save?</string>
     <string name="str_delete">Would you like to delete?</string>
     <string name="str_cancel_save">Would you like to exit without saving?</string>
+
+    <string name="str_login">Sign In</string>
+    <string name="str_id_hint">ID</string>
+    <string name="str_password_hint">PASSWORD</string>
+    <string name="str_sign_up">Sign Up</string>
 </resources>

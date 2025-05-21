@@ -49,6 +49,8 @@ import com.grusie.presentation.R
 import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
+import com.grusie.presentation.ui.base.BaseEventState
+import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonSwitch
 import com.grusie.presentation.ui.common.CommonTitleBar
@@ -76,7 +78,7 @@ fun SettingScreen(
         viewModel.eventState.collect { eventState ->
             if (eventState != null) {
                 when (eventState) {
-                    is SettingEventState.Error -> {
+                    is BaseEventState.Error -> {
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
                     }
@@ -131,7 +133,7 @@ fun SettingScreen(
             }
 
             when (uiState) {
-                is SettingUiState.Loading -> {
+                is BaseUiState.Loading -> {
                     CircleProgressBar()
                 }
             }
@@ -264,7 +266,8 @@ fun AppSettingListItem(
                             .diskCachePolicy(CachePolicy.DISABLED)
                             .memoryCachePolicy(CachePolicy.DISABLED)
                             .placeholder(R.drawable.ic_image_placeholder)
-                            .build()),
+                            .build()
+                    ),
                     contentDescription = "app_icon",
                     colorFilter = if (appSetting.isTintUse) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
                 )
