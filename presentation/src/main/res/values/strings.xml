@@ -37,5 +37,14 @@
     <string name="str_login">로그인</string>
     <string name="str_id_hint">아이디</string>
     <string name="str_password_hint">비밀번호</string>
+    <string name="str_password_confirm_hint">비밀번호 확인</string>
     <string name="str_sign_up">회원가입</string>
+    <string name="str_nickname">닉네임</string>
+    <string name="str_welcome">환영합니다.</string>
+
+    <string name="str_skip">건너뛰기</string>
+    <string name="str_skip_title">로그인을 건너뛰시겠습니까?</string>
+    <string name="str_skip_description">건너뛰기 시 저장된 설정 정보를 불러 올 수 없습니다.</string>
+    <string name="str_cover_title">서버에 저장된 설정이 있습니다. 불러오시겠습니까?</string>
+    <string name="str_cover_description">불러오지 않으면 이 기기의 설정으로 서버 설정이 덮어쓰기 됩니다.</string>
 </resources>

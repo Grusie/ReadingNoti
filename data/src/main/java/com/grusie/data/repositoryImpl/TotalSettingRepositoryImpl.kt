@@ -2,7 +2,8 @@ package com.grusie.data.repositoryImpl
 
 import com.grusie.core.common.ServerKey
 import com.grusie.core.common.SettingType
-import com.grusie.core.utils.Logger
+import com.grusie.core.utils.LogType
+import com.grusie.core.utils.LoggerInterface
 import com.grusie.data.data.DefaultValues
 import com.grusie.data.data.LocalPersonalSettingEntity
 import com.grusie.data.datasource.LocalTotalSettingDataSource
@@ -17,15 +18,16 @@ import javax.inject.Inject
 
 class TotalSettingRepositoryImpl @Inject constructor(
     private val totalSettingDataSource: TotalSettingDataSource,
-    private val localTotalSettingDataSource: LocalTotalSettingDataSource
+    private val localTotalSettingDataSource: LocalTotalSettingDataSource,
+    private val logger: LoggerInterface
 ) : TotalSettingRepository {
     override suspend fun getServerTotalSettingList(type: SettingType?): Result<List<DomainTotalSettingDto>> {
         return try {
             totalSettingDataSource.getTotalSettingList(type)
                 .map { list -> list.map { it.toDomain() } }
         } catch (e: Exception) {
-            Logger.log(
-                Logger.LogType.LOG_TYPE_E,
+            logger.log(
+                LogType.LOG_TYPE_E,
                 this@TotalSettingRepositoryImpl::class.java.simpleName,
                 "${e.message}"
             )
@@ -45,8 +47,8 @@ class TotalSettingRepositoryImpl @Inject constructor(
                 throw e
             }
         } catch (e: Exception) {
-            Logger.log(
-                Logger.LogType.LOG_TYPE_E,
+            logger.log(
+                LogType.LOG_TYPE_E,
                 this@TotalSettingRepositoryImpl::class.java.simpleName,
                 "${e.message}"
             )
@@ -92,8 +94,8 @@ class TotalSettingRepositoryImpl @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Logger.log(
-                Logger.LogType.LOG_TYPE_E,
+            logger.log(
+                LogType.LOG_TYPE_E,
                 this@TotalSettingRepositoryImpl::class.java.simpleName,
                 "${e.message}"
             )
@@ -130,8 +132,8 @@ class TotalSettingRepositoryImpl @Inject constructor(
             totalSettingDataSource.getPersonalSettingList(uid)
                 .map { list -> list.map { it.toDomain() } }
         } catch (e: Exception) {
-            Logger.log(
-                Logger.LogType.LOG_TYPE_E,
+            logger.log(
+                LogType.LOG_TYPE_E,
                 this@TotalSettingRepositoryImpl::class.java.simpleName,
                 "${e.message}"
             )

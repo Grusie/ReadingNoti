@@ -38,5 +38,15 @@
     <string name="str_login">Sign In</string>
     <string name="str_id_hint">ID</string>
     <string name="str_password_hint">PASSWORD</string>
+    <string name="str_password_confirm_hint">PASSWORD CONFIRM</string>
     <string name="str_sign_up">Sign Up</string>
+    <string name="str_nickname">NICKNAME</string>
+    <string name="str_welcome">Welcome.</string>
+
+    <string name="str_skip">Skip</string>
+    <string name="str_skip_title">Skip login?</string>
+    <string name="str_skip_description">You won’t be able to load saved settings if you skip.</string>
+    <string name="str_cover_title">Server settings found. Load them?</string>
+    <string name="str_cover_description">If not loaded, your device settings will overwrite the server settings.</string>
+
 </resources>

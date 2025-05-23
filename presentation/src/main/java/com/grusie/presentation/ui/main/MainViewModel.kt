@@ -3,7 +3,6 @@ package com.grusie.presentation.ui.main
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.grusie.core.utils.Logger
 import com.grusie.domain.usecase.user.UserUseCases
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
@@ -43,10 +42,7 @@ class MainViewModel @Inject constructor(
                     _isAdmin.emit(false)
 
                     // 어드민 리스트를 불러오는 네트워크 에러는 처리 할 필요 없음
-                    Logger.e(
-                        this::class.simpleName.toString(),
-                        "getAdminUserList Error : ${e.getErrorMsg(context)}"
-                    )
+                    log("getAdminUserList Error : ${e.getErrorMsg(context)}")
                 }
             }
             setUiState(BaseUiState.Idle)

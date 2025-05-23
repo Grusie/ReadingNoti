@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,19 +15,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,7 +39,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -44,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +60,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.grusie.core.utils.Logger
+import com.grusie.core.utils.LogType
+import com.grusie.core.utils.LoggerProvider
 import com.grusie.presentation.BuildConfig
 import com.grusie.presentation.R
 import com.grusie.presentation.Routes
@@ -65,6 +72,7 @@ import com.grusie.presentation.ui.common.CommonTextField
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
 import com.grusie.presentation.ui.common.TwoButtonAlertDialog
 import com.grusie.presentation.ui.common.debounceClickable
+import com.grusie.presentation.utils.getErrorMsg
 import com.grusie.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -78,7 +86,8 @@ fun LoginScreen(
     var errorMsg by remember { mutableStateOf("") }
     var alertTitle by remember { mutableStateOf("") }
     var alertMsg by remember { mutableStateOf("") }
-    var isShowAlertDialog by remember { mutableStateOf(false) }
+    var isShowConfirmDialog by remember { mutableStateOf(false) }
+    var confirmType by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -96,7 +105,11 @@ fun LoginScreen(
                                 }
                             }
                         } catch (e: Exception) {
-                            Logger.e("LoginScreen Navigate Error", e)
+                            viewModel.log(
+                                LogType.LOG_TYPE_E,
+                                "LoginScreen Navigate Error",
+                                e.getErrorMsg(context)
+                            )
                             isShowErrorDialog = true
                         }
                     }
@@ -106,174 +119,211 @@ fun LoginScreen(
                         isShowErrorDialog = true
                     }
 
-                    is BaseEventState.Alert -> {
+                    is BaseEventState.Confirm -> {
                         alertTitle = eventState.title
                         alertMsg = eventState.msg
-                        isShowAlertDialog = true
+                        confirmType = eventState.confirmType
+                        isShowConfirmDialog = true
                     }
                 }
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                })
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        val isPasswordVisible = viewModel.isPasswordVisible.collectAsState().value
-        val idText = viewModel.idText.collectAsState().value
-        val pwText = viewModel.pwText.collectAsState().value
-
-        Column(
+    Scaffold() { paddingValues ->
+        Box(
             modifier = Modifier
+                .padding(paddingValues)
                 .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .imePadding(),
-            verticalArrangement = Arrangement.Center
-        ) {
-
-            Text(
-                modifier = Modifier.padding(bottom = 20.dp),
-                text = "환영합니다.",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 28.sp
-            )
-
-            CommonTextField(
-                value = idText,
-                hint = context.getString(R.string.str_id_hint),
-                onValueChanged = { viewModel.setIdText(it) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email
-                ),
-                isTrailingVisible = idText.isNotEmpty(),
-                trailIcon = { Icon(Icons.Default.Clear, "") },
-                trailButtonClick = { viewModel.setIdText("") }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            CommonTextField(
-                value = pwText,
-                hint = context.getString(R.string.str_password_hint),
-                onValueChanged = { viewModel.setPwText(it) },
-                isTrailingVisible = pwText.isNotEmpty(),
-                isPasswordStyle = !isPasswordVisible,
-                trailIcon = {
-                    Icon(
-                        if (isPasswordVisible) painterResource(R.drawable.ic_visible)
-                        else painterResource(R.drawable.ic_invisible),
-                        contentDescription = "ic_password_visible"
-                    )
-                },
-                trailButtonClick = {
-                    viewModel.changePasswordVisible()
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password
-                )
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(10.dp)
-                    )
-                    .clickable {
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
                         focusManager.clearFocus()
                         keyboardController?.hide()
-                    }
-                    .padding(vertical = 16.dp),
-                text = context.getString(R.string.str_login),
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 20.dp)
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    thickness = 1.dp
-                )
-
-                // 가운데 텍스트
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = "or",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    fontSize = 16.sp
-                )
-
-                // 오른쪽 Divider
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    thickness = 1.dp
-                )
-            }
-
-            GoogleSignInButton(modifier = Modifier.align(Alignment.CenterHorizontally), onClick = {
-                focusManager.clearFocus()
-                keyboardController?.hide()
-                scope.launch {
-                    handleSignIn(context) { viewModel.requestGoogleSignIn(it) }
+                    })
                 }
-            })
+        ) {
+            val isPasswordVisible = viewModel.isPasswordVisible.collectAsState().value
+            val idText = viewModel.idText.collectAsState().value
+            val pwText = viewModel.pwText.collectAsState().value
+            val scrollState = rememberScrollState()
 
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(
+            Column(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .clickable {
-                        viewModel.setEventState(BaseEventState.Navigate(""))
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp)
+                    .imePadding()
+                    .verticalScroll(scrollState)
+            ) {
+                Spacer(modifier = Modifier.height(LocalConfiguration.current.screenHeightDp.dp * 0.2f))
+                Text(
+                    modifier = Modifier.padding(bottom = 20.dp),
+                    text = context.getString(R.string.str_welcome),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 28.sp
+                )
+
+                CommonTextField(
+                    value = idText,
+                    hint = context.getString(R.string.str_id_hint),
+                    onValueChanged = { viewModel.setIdText(it) },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email
+                    ),
+                    isTrailingVisible = idText.isNotEmpty(),
+                    trailIcon = { Icon(Icons.Default.Clear, "") },
+                    trailButtonClick = { viewModel.setIdText("") }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                CommonTextField(
+                    value = pwText,
+                    hint = context.getString(R.string.str_password_hint),
+                    onValueChanged = { viewModel.setPwText(it) },
+                    isTrailingVisible = pwText.isNotEmpty(),
+                    isPasswordStyle = !isPasswordVisible,
+                    trailIcon = {
+                        Icon(
+                            if (isPasswordVisible) painterResource(R.drawable.ic_visible)
+                            else painterResource(R.drawable.ic_invisible),
+                            contentDescription = "ic_password_visible"
+                        )
                     },
-                text = context.getString(R.string.str_sign_up),
-                color = MaterialTheme.colorScheme.primary
+                    trailButtonClick = {
+                        viewModel.changePasswordVisible()
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password
+                    )
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .clickable {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        }
+                        .padding(vertical = 16.dp),
+                    text = context.getString(R.string.str_login),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp)
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        thickness = 1.dp
+                    )
+
+                    // 가운데 텍스트
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = "or",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        fontSize = 16.sp
+                    )
+
+                    // 오른쪽 Divider
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        thickness = 1.dp
+                    )
+                }
+
+                GoogleSignInButton(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    onClick = {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                        scope.launch {
+                            handleSignIn(context) { viewModel.requestGoogleSignIn(it) }
+                        }
+                    })
+
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .debounceClickable {
+                            viewModel.setEventState(BaseEventState.Navigate(Routes.SIGNUP))
+                        },
+                    text = context.getString(R.string.str_sign_up),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    modifier = Modifier
+                        .padding(bottom = 32.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .debounceClickable {
+                            viewModel.setEventState(BaseEventState.Confirm(
+                                title = context.getString(R.string.str_skip_title),
+                                msg = context.getString(R.string.str_skip_description),
+                                confirmType = AuthViewModel.ConfirmType.SKIP
+                            ))
+                        },
+                    text = context.getString(R.string.str_skip),
+                    color = Color.Gray,
+                    textDecoration = TextDecoration.Underline
+                )
+            }
+
+            when (authUiState) {
+                is BaseUiState.Loading -> {
+                    CircleProgressBar()
+                }
+            }
+
+            OneButtonAlertDialog(
+                isShowDialog = isShowErrorDialog,
+                onClickConfirm = { isShowErrorDialog = false },
+                title = context.getString(R.string.common_error_title_notice_msg),
+                content = errorMsg,
+            )
+
+            TwoButtonAlertDialog(
+                isShowDialog = isShowConfirmDialog,
+                onClickConfirm = {
+                    isShowConfirmDialog = false
+
+                    when(confirmType) {
+                        AuthViewModel.ConfirmType.COVER -> {
+                            viewModel.coverPersonalSetting(true)
+                        }
+                        AuthViewModel.ConfirmType.SKIP -> {
+                            viewModel.skipLogin()
+                        }
+                    }
+                },
+                onClickCancel = {
+                    isShowConfirmDialog = false
+                    when(confirmType) {
+                        AuthViewModel.ConfirmType.COVER -> {
+                            viewModel.coverPersonalSetting(false)
+                        }
+                    }
+                },
+                onDismiss = {},
+                title = alertTitle,
+                content = alertMsg,
             )
         }
-
-        when (authUiState) {
-            is BaseUiState.Loading -> {
-                CircleProgressBar()
-            }
-        }
-
-        OneButtonAlertDialog(
-            isShowDialog = isShowErrorDialog,
-            onClickConfirm = { isShowErrorDialog = false },
-            title = context.getString(R.string.common_error_title_notice_msg),
-            content = errorMsg,
-        )
-
-        TwoButtonAlertDialog(
-            isShowDialog = isShowAlertDialog,
-            onClickConfirm = {
-                isShowAlertDialog = false
-                viewModel.coverPersonalSetting(true)
-            },
-            onClickCancel = {
-                isShowAlertDialog = false
-                viewModel.coverPersonalSetting(false)
-            },
-            onDismiss = {},
-            title = alertTitle,
-            content = alertMsg,
-        )
     }
 }
 
@@ -322,7 +372,7 @@ private suspend fun handleSignIn(context: Context, requestGoogleSignIn: (String)
             requestGoogleSignIn(googleIdTokenCredential.idToken)
         }
     } catch (e: Exception) {
-        Logger.e("LoginScreen handleSignIn Error", e)
+        LoggerProvider.logger.e("LoginScreen handleSignIn Error", e)
     }
 }
 

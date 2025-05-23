@@ -2,7 +2,8 @@ package com.grusie.presentation.ui.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.grusie.core.utils.Logger
+import com.grusie.core.utils.LogType
+import com.grusie.core.utils.LoggerProvider
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,9 +30,9 @@ abstract class BaseViewModel : ViewModel() {
      *
      * @param uiState 각 uiState <- BaseUiState를 상속
      */
-    fun setUiState(uiState: BaseUiState){
+    fun setUiState(uiState: BaseUiState) {
         viewModelScope.launch {
-            log(Logger.LogType.LOG_TYPE_I, "uiStateChanged (${_uiState.value} -> ${uiState})")
+            log(LogType.LOG_TYPE_I, "uiStateChanged (${_uiState.value} -> ${uiState})")
             _uiState.emit(uiState)
         }
     }
@@ -42,9 +43,12 @@ abstract class BaseViewModel : ViewModel() {
      *
      * @param eventState 각 eventState <- BaseEventState를 상속
      */
-    fun setEventState(eventState: BaseEventState){
+    fun setEventState(eventState: BaseEventState) {
         viewModelScope.launch {
-            log(Logger.LogType.LOG_TYPE_I, "eventTypeChanged (${eventState::class.qualifiedName} : ${eventState})")
+            log(
+                LogType.LOG_TYPE_I,
+                "eventTypeChanged (${eventState::class.qualifiedName} : ${eventState})"
+            )
             _eventState.emit(eventState)
         }
     }
@@ -55,7 +59,7 @@ abstract class BaseViewModel : ViewModel() {
      * @param message 로그 메세지
      */
     fun log(message: String) {
-        log(Logger.LogType.LOG_TYPE_D, message)
+        log(LogType.LOG_TYPE_D, message)
     }
 
     /**
@@ -64,8 +68,8 @@ abstract class BaseViewModel : ViewModel() {
      * @param logType 로그 타입 (Logger.LogType 참조)
      * @param message 로그 메세지
      */
-    fun log(logType: Logger.LogType, message: String) {
-        Logger.log(logType, currentViewModelClass, message)
+    fun log(logType: LogType, message: String) {
+        LoggerProvider.logger.log(logType, currentViewModelClass, message)
     }
 
     /**
@@ -74,6 +78,17 @@ abstract class BaseViewModel : ViewModel() {
      * @param exception Exception
      */
     fun log(exception: Exception) {
-        Logger.logException(currentViewModelClass, exception)
+        LoggerProvider.logger.logException(currentViewModelClass, exception)
+    }
+
+    /**
+     * logType과 태그, 메세지를 넘겨서 로그를 찍어냄
+     *
+     * @param logType
+     * @param tag
+     * @param message
+     */
+    fun log(logType: LogType, tag: String, message: String) {
+        LoggerProvider.logger.log(logType, tag, message)
     }
 }

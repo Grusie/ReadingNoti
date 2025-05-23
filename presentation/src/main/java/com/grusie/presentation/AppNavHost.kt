@@ -12,6 +12,7 @@ import com.grusie.presentation.ui.admin.AdminDetailModify
 import com.grusie.presentation.ui.admin.AdminDetailScreen
 import com.grusie.presentation.ui.admin.AdminScreen
 import com.grusie.presentation.ui.auth.LoginScreen
+import com.grusie.presentation.ui.auth.SignUpScreen
 import com.grusie.presentation.ui.main.MainScreen
 import com.grusie.presentation.ui.setting.SettingScreen
 import com.grusie.presentation.ui.splash.SplashScreen
@@ -47,5 +48,9 @@ fun AppNavHost(navController: NavHostController) {
         ) {
             AdminDetailModify(navController)
         }
+
+        composable(
+            Routes.SIGNUP
+        ) { SignUpScreen(navController) }
     }
 }

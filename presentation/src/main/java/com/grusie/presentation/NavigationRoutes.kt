@@ -8,6 +8,7 @@ object Routes {
     const val ADMIN = "admin"
     const val DETAIL_ADMIN = "detail_admin"
     const val DETAIL_ADMIN_MODIFY = "detail_admin_modify"
+    const val SIGNUP = "signup"
 
     object Keys {
         const val EXTRA_DATA = "extra_data"

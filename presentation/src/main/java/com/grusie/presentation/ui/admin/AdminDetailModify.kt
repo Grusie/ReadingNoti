@@ -69,7 +69,6 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.grusie.core.common.SettingFieldEnum
 import com.grusie.core.common.SettingType
-import com.grusie.core.utils.Logger
 import com.grusie.presentation.R
 import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
@@ -111,13 +110,13 @@ fun AdminDetailModify(
                     )
                 }
             } else {
-                Logger.e("AdminScreen", "imagePicker Error : imageUrl is Null")
+                viewModel.log("imagePicker Error : imageUrl is Null")
             }
         }
 
     // 뒤로가기 버튼 눌렀을 때 저장 안 하냐는 Alert를 띄움
     BackHandler {
-        viewModel.setEventState(AdminEventState.Confirm(AdminViewModel.ConfirmType.CANCEL))
+        viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.CANCEL))
     }
 
     LaunchedEffect(Unit) {
@@ -148,7 +147,7 @@ fun AdminDetailModify(
                         }
                     }
 
-                    is AdminEventState.Confirm -> {
+                    is AdminEventState.AdminConfirm -> {
                         focusManager.clearFocus()
                         keyboardController?.hide()
                         isShowConfirmDialog = true
@@ -172,7 +171,7 @@ fun AdminDetailModify(
                 TitleButtonItem(
                     iconRes = R.drawable.ic_back_black,
                     {
-                        viewModel.setEventState(AdminEventState.Confirm(AdminViewModel.ConfirmType.CANCEL))
+                        viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.CANCEL))
                     },
                 )
             ),
@@ -180,7 +179,7 @@ fun AdminDetailModify(
                 if (viewModel.initDetailTotalSettingDto != null && viewModel.initDetailTotalSettingDto.type == SettingType.APP) {
                     add(
                         TitleButtonItem(iconRes = R.drawable.ic_delete, {
-                            viewModel.setEventState(AdminEventState.Confirm(AdminViewModel.ConfirmType.DELETE))
+                            viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.DELETE))
                         })
                     )
                 }
@@ -189,7 +188,7 @@ fun AdminDetailModify(
                         if (!viewModel.isEnabledSave()) {
                             viewModel.setEventState(BaseEventState.Toast("필수 데이터를 입력해주세요."))
                         } else {
-                            viewModel.setEventState(AdminEventState.Confirm(AdminViewModel.ConfirmType.CONFIRM))
+                            viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.CONFIRM))
                         }
                     }, iconTint = MaterialTheme.colorScheme.primary)
                 )

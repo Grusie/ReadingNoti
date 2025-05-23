@@ -9,5 +9,6 @@ abstract class BaseEventState {
     ) : BaseEventState()
 
     data class Alert(val title: String, val msg: String) : BaseEventState()
+    data class Confirm(val title: String, val msg: String, val confirmType: Int) : BaseEventState()
     data class Toast(val toastMsg: String) : BaseEventState()
 }

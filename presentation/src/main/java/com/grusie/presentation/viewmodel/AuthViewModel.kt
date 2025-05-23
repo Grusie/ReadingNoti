@@ -35,8 +35,17 @@ class AuthViewModel @Inject constructor(
     private val _pwText: MutableStateFlow<String> = MutableStateFlow("")
     val pwText: StateFlow<String> = _pwText.asStateFlow()
 
+    private val _pwConfirmText: MutableStateFlow<String> = MutableStateFlow("")
+    val pwConfirmText: StateFlow<String> = _pwConfirmText.asStateFlow()
+
+    private val _nickNameText: MutableStateFlow<String> = MutableStateFlow("")
+    val nickNameText: StateFlow<String> = _nickNameText.asStateFlow()
+
     private val _isPasswordVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isPasswordVisible: StateFlow<Boolean> = _isPasswordVisible.asStateFlow()
+
+    private val _isPasswordConfirmVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isPasswordConfirmVisible: StateFlow<Boolean> = _isPasswordConfirmVisible.asStateFlow()
 
     /**
      * idToken을 가지고 구글 로그인 진행
@@ -93,9 +102,10 @@ class AuthViewModel @Inject constructor(
                 onSuccess = {
                     // 기존 사용자
                     setEventState(
-                        BaseEventState.Alert(
-                            "서버에 저장된 설정이 있습니다. 불러오시겠습니까?",
-                            "불러오지 않으면 이 기기의 설정으로 서버 설정이 덮어쓰기 됩니다."
+                        BaseEventState.Confirm(
+                            context.getString(R.string.str_cover_title),
+                            context.getString(R.string.str_cover_description),
+                            confirmType = ConfirmType.COVER
                         )
                     )
                     false
@@ -161,9 +171,19 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun skipLogin() {
+        setEventState(BaseEventState.Navigate(Routes.MAIN, true))
+    }
+
     fun changePasswordVisible() {
         viewModelScope.launch {
             _isPasswordVisible.emit(!_isPasswordVisible.value)
+        }
+    }
+
+    fun changePasswordConfirmVisible() {
+        viewModelScope.launch {
+            _isPasswordConfirmVisible.emit(!_isPasswordConfirmVisible.value)
         }
     }
 
@@ -177,5 +197,22 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _pwText.emit(pwText)
         }
+    }
+
+    fun setPwConfirmText(pwConfirmText: String) {
+        viewModelScope.launch {
+            _pwConfirmText.emit(pwConfirmText)
+        }
+    }
+
+    fun setNickNameText(nickNameText: String) {
+        viewModelScope.launch {
+            _nickNameText.emit(nickNameText)
+        }
+    }
+
+    object ConfirmType {
+        const val SKIP = 1
+        const val COVER = 2
     }
 }
