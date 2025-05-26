@@ -205,6 +205,8 @@ fun LoginScreen(
                         .clickable {
                             focusManager.clearFocus()
                             keyboardController?.hide()
+
+                            viewModel.emailLogin()
                         }
                         .padding(vertical = 16.dp),
                     text = context.getString(R.string.str_login),

@@ -16,7 +16,7 @@
 
     <string name="auth_error_not_email_format">Invalid email format.</string>
     <string name="auth_error_pw_confirm_incorrect">Password confirmation does not match.</string>
-    <string name="auth_error_email_pw_incorrect">No matching email/password found.</string>
+    <string name="auth_error_email_pw_incorrect">The email or password is incorrect.</string>
     <string name="auth_error_pw_length">The password must be at least %d characters long.</string>
     <string name="auth_error_duplication_email">The email is already in use.</string>
 

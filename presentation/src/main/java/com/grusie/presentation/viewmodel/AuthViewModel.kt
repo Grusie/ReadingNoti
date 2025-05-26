@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.grusie.core.utils.NetworkChecker
@@ -59,7 +60,10 @@ class AuthViewModel @Inject constructor(
      */
     fun requestGoogleSignIn(idToken: String) {
 
-        if(!networkChecker.isNetworkAvailable()) setEventState(BaseEventState.Error(CommonException.NetworkError.getErrorMsg(context)))
+        if(!networkChecker.isNetworkAvailable()){
+            setEventState(BaseEventState.Error(CommonException.NetworkError.getErrorMsg(context)))
+            return
+        }
 
         setUiState(BaseUiState.Loading)
         val authCredential = GoogleAuthProvider.getCredential(idToken, null)
@@ -68,31 +72,34 @@ class AuthViewModel @Inject constructor(
 
         googleSignInTask.addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                viewModelScope.launch {
-                    auth.currentUser?.let {
-                        userUseCases.initUserUseCase(
-                            DomainUserDto(
-                                uid = it.uid,
-                                email = it.email ?: it.uid,
-                                isAdmin = false,
-                                name = it.displayName ?: it.email ?: ""
-                            )
-                        )
-                    }?.onSuccess {
-                        if (initPersonalSetting()) {
-                            setEventState(BaseEventState.Navigate(Routes.MAIN, true))
-                        }
-                    }?.onFailure { e ->
-                        setEventState(BaseEventState.Error(e.getErrorMsg(context)))
-                    }
-                        ?: run { setEventState(BaseEventState.Error(context.getString(R.string.common_error_unknown_msg))) }
-                }
+                onSuccessLogin()
             } else {
-                setEventState(BaseEventState.Error(task.exception?.message ?: ""))
+                setEventState(BaseEventState.Error(task.exception?.getErrorMsg(context) ?: context.getString(R.string.common_error_unknown_msg)))
             }
             setUiState(BaseUiState.Idle)
         }.addOnFailureListener {
             setUiState(BaseUiState.Idle)
+        }
+    }
+
+    private fun onSuccessLogin() {
+        viewModelScope.launch {
+            auth.currentUser?.let {
+                userUseCases.initUserUseCase(
+                    DomainUserDto(
+                        uid = it.uid,
+                        email = it.email ?: it.uid,
+                        isAdmin = false,
+                        name = it.displayName ?: it.email ?: ""
+                    )
+                )
+            }?.onSuccess {
+                if (initPersonalSetting()) {
+                    setEventState(BaseEventState.Navigate(Routes.MAIN, true))
+                }
+            }?.onFailure { e ->
+                setEventState(BaseEventState.Error(e.getErrorMsg(context)))
+            } ?: run { setEventState(BaseEventState.Error(context.getString(R.string.common_error_unknown_msg))) }
         }
     }
 
@@ -181,14 +188,57 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun emailLogin() {
+        if (_idText.value.isEmpty() || _pwText.value.isEmpty()) {
+            setEventState(BaseEventState.Error(CommonException.EssentialError.getErrorMsg(context)))
+            return
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(_idText.value).matches()) {
+            // 이메일이 이메일 형식이 아닐 경우
+            setEventState(
+                BaseEventState.Error(AuthException.EmailTypeMatchingError.getErrorMsg(context))
+            )
+            return
+        }
+
+        if(!networkChecker.isNetworkAvailable()){
+            setEventState(BaseEventState.Error(CommonException.NetworkError.getErrorMsg(context)))
+            return
+        }
+
+        setUiState(BaseUiState.Loading)
+        auth.signInWithEmailAndPassword(_idText.value, _pwText.value).addOnCompleteListener { task ->
+            if(task.isSuccessful) {
+                onSuccessLogin()
+            } else {
+                val exception = task.exception
+                if(exception is FirebaseAuthInvalidCredentialsException) {
+                    setEventState(BaseEventState.Error(AuthException.EmailPwIncorrectError.getErrorMsg(context)))
+                } else {
+                    setEventState(
+                        BaseEventState.Error(
+                            task.exception?.getErrorMsg(context)
+                                ?: context.getString(R.string.common_error_unknown_msg)
+                        )
+                    )
+                }
+            }
+            setUiState(BaseUiState.Idle)
+        }.addOnFailureListener {
+            setUiState(BaseUiState.Idle)
+        }
+    }
+
     fun emailSignUp() {
         if (!isPossibleSignUp()) return
-        if(!networkChecker.isNetworkAvailable()) setEventState(BaseEventState.Error(CommonException.NetworkError.getErrorMsg(context)))
+        if (!networkChecker.isNetworkAvailable()) setEventState(BaseEventState.Error(CommonException.NetworkError.getErrorMsg(context)))
 
         setUiState(BaseUiState.Loading)
         auth.createUserWithEmailAndPassword(_idText.value, _pwText.value)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    auth.signOut()
                     setEventState(
                         BaseEventState.Alert(
                             title = context.getString(R.string.common_error_title_notice_msg),
