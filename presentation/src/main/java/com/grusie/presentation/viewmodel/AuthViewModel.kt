@@ -1,10 +1,14 @@
 package com.grusie.presentation.viewmodel
 
 import android.content.Context
+import android.util.Patterns
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
-import com.grusie.domain.data.CustomException
+import com.grusie.core.utils.NetworkChecker
+import com.grusie.domain.data.AuthException
+import com.grusie.domain.data.CommonException
 import com.grusie.domain.data.DomainUserDto
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import com.grusie.domain.usecase.user.UserUseCases
@@ -26,6 +30,7 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val auth: FirebaseAuth,
+    private val networkChecker: NetworkChecker,
     private val totalSettingUseCases: TotalSettingUseCases,
     private val userUseCases: UserUseCases
 ) : BaseViewModel() {
@@ -53,6 +58,9 @@ class AuthViewModel @Inject constructor(
      * @param idToken 구글 아이디 토큰
      */
     fun requestGoogleSignIn(idToken: String) {
+
+        if(!networkChecker.isNetworkAvailable()) setEventState(BaseEventState.Error(CommonException.NetworkError.getErrorMsg(context)))
+
         setUiState(BaseUiState.Loading)
         val authCredential = GoogleAuthProvider.getCredential(idToken, null)
 
@@ -83,6 +91,8 @@ class AuthViewModel @Inject constructor(
                 setEventState(BaseEventState.Error(task.exception?.message ?: ""))
             }
             setUiState(BaseUiState.Idle)
+        }.addOnFailureListener {
+            setUiState(BaseUiState.Idle)
         }
     }
 
@@ -111,13 +121,13 @@ class AuthViewModel @Inject constructor(
                     false
                 }, onFailure = { e ->
                     when (e) {
-                        is CustomException.NetworkError -> {
+                        is CommonException.NetworkError -> {
                             auth.signOut()
                             // 네트워크 에러
                             setEventState(BaseEventState.Error(context.getString(R.string.common_error_network)))
                         }
 
-                        is CustomException.NotFoundOnServer -> {
+                        is CommonException.NotFoundOnServer -> {
                             // 서버에 데이터 없음 <- 신규 사용자
                             totalSettingUseCases.setPersonalSettingListUseCase(
                                 it.uid,
@@ -169,6 +179,97 @@ class AuthViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun emailSignUp() {
+        if (!isPossibleSignUp()) return
+        if(!networkChecker.isNetworkAvailable()) setEventState(BaseEventState.Error(CommonException.NetworkError.getErrorMsg(context)))
+
+        setUiState(BaseUiState.Loading)
+        auth.createUserWithEmailAndPassword(_idText.value, _pwText.value)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    setEventState(
+                        BaseEventState.Alert(
+                            title = context.getString(R.string.common_error_title_notice_msg),
+                            msg = context.getString(R.string.str_success_sign_up),
+                            onConfirm = { setEventState(BaseEventState.PopBackStack) }
+                        )
+                    )
+                } else {
+                    if(task.exception is FirebaseAuthUserCollisionException) {
+                        setEventState(BaseEventState.Error(errorMsg = AuthException.DuplicationEmailError.getErrorMsg(context)))
+                    } else {
+                        setEventState(
+                            BaseEventState.Error(
+                                errorMsg = task.exception?.getErrorMsg(context)
+                                    ?: context.getString(R.string.common_error_unknown_msg)
+                            )
+                        )
+                    }
+                }
+                setUiState(BaseUiState.Idle)
+            }.addOnFailureListener {
+                setUiState(BaseUiState.Idle)
+            }
+    }
+
+    private fun isPossibleSignUp(): Boolean {
+        if (_nickNameText.value.isEmpty() || _idText.value.isEmpty() || _pwText.value.isEmpty() || _pwConfirmText.value.isEmpty()) {
+            // 닉네임, 이메일, 비밀번호, 비밀번호 변경 텍스트가 비어 있을 경우
+            setEventState(BaseEventState.Error(CommonException.EssentialError.getErrorMsg(context)))
+            return false
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(_idText.value).matches()) {
+            // 이메일이 이메일 형식이 아닐 경우
+            setEventState(
+                BaseEventState.Error(
+                    AuthException.EmailTypeMatchingError.getErrorMsg(
+                        context
+                    )
+                )
+            )
+            return false
+        }
+
+        if (_pwText.value != _pwConfirmText.value) {
+            // 비밀번호와 비밀번호 확인이 다를 경우
+            setEventState(
+                BaseEventState.Error(
+                    AuthException.PwConfirmIncorrectError.getErrorMsg(
+                        context
+                    )
+                )
+            )
+            return false
+        }
+
+        if (!isPossiblePassword()) {
+            // 비밀번호 설정 규칙에 부합하지 않을 경우
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * 비밀번호 설정 규칙에 부합한지를 반환
+     */
+    private fun isPossiblePassword(): Boolean {
+
+        if(_pwText.value.length < 6) {
+            // 6자리 미만일 경우
+            setEventState(
+                BaseEventState.Error(
+                    AuthException.PwLengthError.getErrorMsg(
+                        context
+                    )
+                )
+            )
+            return false
+        }
+
+        return true
     }
 
     fun skipLogin() {

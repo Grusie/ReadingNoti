@@ -6,7 +6,7 @@ import com.grusie.core.common.ServerKey
 import com.grusie.core.utils.NetworkChecker
 import com.grusie.data.data.UserDto
 import com.grusie.data.datasource.UserDataSource
-import com.grusie.domain.data.CustomException
+import com.grusie.domain.data.CommonException
 import com.grusie.domain.data.DomainUserDto
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -17,12 +17,12 @@ class UserDataSourceImpl @Inject constructor(
 ) : UserDataSource {
     override suspend fun getUserList(): Result<List<UserDto>> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             val snapShot = firestore.collection(CollectionKind.USER_LIST).get().await()
 
             if (snapShot.isEmpty) {
-                return Result.failure(CustomException.NotFoundOnServer)
+                return Result.failure(CommonException.NotFoundOnServer)
             }
             val adminUserList = snapShot.map { doc ->
                 val uid = doc.id
@@ -47,7 +47,7 @@ class UserDataSourceImpl @Inject constructor(
 
     override suspend fun isAdmin(uid: String): Result<Boolean> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             val snapShot =
                 firestore.collection(CollectionKind.USER_LIST).document(uid).get().await()
@@ -62,7 +62,7 @@ class UserDataSourceImpl @Inject constructor(
 
     override suspend fun setAdmin(uid: String, isAdmin: Boolean): Result<Unit> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             firestore.collection(CollectionKind.USER_LIST).document(uid).update(
                 ServerKey.User.KEY_IS_ADMIN, isAdmin
@@ -76,7 +76,7 @@ class UserDataSourceImpl @Inject constructor(
 
     override suspend fun initUser(domainUserDto: DomainUserDto): Result<Unit> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             val collection = firestore.collection(CollectionKind.USER_LIST)
 

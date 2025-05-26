@@ -9,7 +9,7 @@ import com.grusie.core.utils.NetworkChecker
 import com.grusie.data.data.PersonalSettingDto
 import com.grusie.data.data.TotalSettingDto
 import com.grusie.data.datasource.TotalSettingDataSource
-import com.grusie.domain.data.CustomException
+import com.grusie.domain.data.CommonException
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.data.DomainTotalSettingDto
 import kotlinx.coroutines.tasks.await
@@ -21,7 +21,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
 ) : TotalSettingDataSource {
     override suspend fun getTotalSettingList(type: SettingType?): Result<List<TotalSettingDto>> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
+            if (!networkChecker.isNetworkAvailable()) return Result.failure(CommonException.NetworkError)
 
             val snapShot = firestore.collection(CollectionKind.TOTAL_SETTING_LIST).get().await()
             val totalSettingList = snapShot.documents.mapNotNull { doc ->
@@ -64,13 +64,13 @@ class TotalSettingDataSourceImpl @Inject constructor(
 
     override suspend fun getPersonalSettingList(uid: String): Result<List<PersonalSettingDto>> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
+            if (!networkChecker.isNetworkAvailable()) return Result.failure(CommonException.NetworkError)
 
             val snapShot = firestore.collection(CollectionKind.PERSONAL_SETTING_LIST).document(uid)
                 .collection(CollectionKind.SUB_PERSONAL_SETTING_LIST).get().await()
 
             if (snapShot.isEmpty) {
-                return Result.failure(CustomException.NotFoundOnServer)
+                return Result.failure(CommonException.NotFoundOnServer)
             }
             val personalSettingList = snapShot.map { doc ->
                 val menuId = doc.getLong(ServerKey.PersonalSetting.KEY_MENU_ID)?.toInt() ?: -1
@@ -98,7 +98,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
         list: List<DomainPersonalSettingDto>
     ): Result<Unit> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) return Result.failure(CustomException.NetworkError)
+            if (!networkChecker.isNetworkAvailable()) return Result.failure(CommonException.NetworkError)
             val collectionRef = firestore
                 .collection(CollectionKind.PERSONAL_SETTING_LIST)
                 .document(uid)
@@ -127,12 +127,12 @@ class TotalSettingDataSourceImpl @Inject constructor(
         domainTotalSettingDto: DomainTotalSettingDto
     ): Result<Unit> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             val docName =
                 if(domainTotalSettingDto.type == SettingType.GENERAL) {
                     TotalMenu.from(domainTotalSettingDto.menuId)?.name
-                        ?: throw CustomException.DataMatchingError
+                        ?: throw CommonException.DataMatchingError
                 } else {
                     domainTotalSettingDto.docName.ifEmpty { domainTotalSettingDto.menuId.toString() }
                 }
@@ -194,8 +194,8 @@ class TotalSettingDataSourceImpl @Inject constructor(
 
     override suspend fun updateTotalSetting(menuId: Int, field: Map<String, Any>): Result<Unit> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
-            val totalMenu = TotalMenu.from(menuId) ?: throw CustomException.DataMatchingError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
+            val totalMenu = TotalMenu.from(menuId) ?: throw CommonException.DataMatchingError
 
             firestore.collection(CollectionKind.TOTAL_SETTING_LIST).document(totalMenu.name).update(
                 field
@@ -209,7 +209,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
 
     override suspend fun deleteTotalSettingList(domainTotalSettingDocNameList: List<String>): Result<Unit> {
         return try {
-            if(!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+            if(!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             domainTotalSettingDocNameList.forEach {
                 firestore

@@ -3,7 +3,7 @@ package com.grusie.data.datasourceImpl
 import com.grusie.core.common.StorageConst
 import com.grusie.core.utils.NetworkChecker
 import com.grusie.data.datasource.StorageDataSource
-import com.grusie.domain.data.CustomException
+import com.grusie.domain.data.CommonException
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
 import javax.inject.Inject
@@ -19,7 +19,7 @@ class StorageDataSourceImpl @Inject constructor(
         bytes: ByteArray
     ): Result<String> {
         return try {
-            if (!networkChecker.isNetworkAvailable()) throw CustomException.NetworkError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             val bucket = supabaseClient.storage.from(bucketName)
 

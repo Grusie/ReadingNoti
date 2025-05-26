@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -54,7 +53,6 @@ import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTextField
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
-import com.grusie.presentation.ui.common.TwoButtonAlertDialog
 import com.grusie.presentation.ui.common.debounceClickable
 import com.grusie.presentation.viewmodel.AuthViewModel
 
@@ -71,6 +69,7 @@ fun SignUpScreen(
     var alertTitle by remember { mutableStateOf("") }
     var alertMsg by remember { mutableStateOf("") }
     var isShowAlertDialog by remember { mutableStateOf(false) }
+    var onAlertConfirm: () -> Unit = {}
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -91,6 +90,10 @@ fun SignUpScreen(
                         }
                     }
 
+                    is BaseEventState.PopBackStack -> {
+                        navController.popBackStack()
+                    }
+
                     is BaseEventState.Error -> {
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
@@ -99,6 +102,7 @@ fun SignUpScreen(
                     is BaseEventState.Alert -> {
                         alertTitle = eventState.title
                         alertMsg = eventState.msg
+                        onAlertConfirm = eventState.onConfirm
                         isShowAlertDialog = true
                     }
                 }
@@ -126,7 +130,6 @@ fun SignUpScreen(
             val pwConfirmText = viewModel.pwConfirmText.collectAsState().value
             val idText = viewModel.idText.collectAsState().value
             val pwText = viewModel.pwText.collectAsState().value
-            val bringIntoViewRequester = remember { BringIntoViewRequester() }
 
             Column(
                 modifier = Modifier
@@ -222,6 +225,7 @@ fun SignUpScreen(
                         .debounceClickable {
                             focusManager.clearFocus()
                             keyboardController?.hide()
+                            viewModel.emailSignUp()
                         }
                         .padding(vertical = 16.dp),
                     text = context.getString(R.string.str_sign_up),
@@ -245,15 +249,11 @@ fun SignUpScreen(
                 content = errorMsg,
             )
 
-            TwoButtonAlertDialog(
+            OneButtonAlertDialog(
                 isShowDialog = isShowAlertDialog,
                 onClickConfirm = {
                     isShowAlertDialog = false
-                    viewModel.coverPersonalSetting(true)
-                },
-                onClickCancel = {
-                    isShowAlertDialog = false
-                    viewModel.coverPersonalSetting(false)
+                    onAlertConfirm()
                 },
                 onDismiss = {},
                 title = alertTitle,

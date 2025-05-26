@@ -10,7 +10,7 @@ import com.grusie.data.datasource.LocalTotalSettingDataSource
 import com.grusie.data.datasource.TotalSettingDataSource
 import com.grusie.data.mapper.toDomain
 import com.grusie.data.mapper.toLocal
-import com.grusie.domain.data.CustomException
+import com.grusie.domain.data.CommonException
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.data.DomainTotalSettingDto
 import com.grusie.domain.repository.TotalSettingRepository
@@ -101,7 +101,7 @@ class TotalSettingRepositoryImpl @Inject constructor(
             )
 
             when (e) {
-                is CustomException.NotFoundOnServer -> {
+                is CommonException.NotFoundOnServer -> {
                     // 로컬DB에 값이 없고 서버에도 값이 없을 경우는 기본 세팅 값 지정
                     saveLocalPersonalSettingList(DefaultValues.initPersonalSettingList)
                 }

@@ -12,6 +12,14 @@
     <string name="common_error_data_not_found">Data not found.</string>
     <string name="common_error_network">A network error has occurred.</string>
     <string name="common_error_data_not_matched">Data not matched.</string>
+    <string name="common_error_essential_data_empty">Please enter all required fields.</string>
+
+    <string name="auth_error_not_email_format">Invalid email format.</string>
+    <string name="auth_error_pw_confirm_incorrect">Password confirmation does not match.</string>
+    <string name="auth_error_email_pw_incorrect">No matching email/password found.</string>
+    <string name="auth_error_pw_length">The password must be at least %d characters long.</string>
+    <string name="auth_error_duplication_email">The email is already in use.</string>
+
     <string name="common_error_unknown_msg">An unknown error has occurred.</string>
 
     <string name="manage_admin_remove_me_error">You cannot remove yourself.</string>
@@ -36,7 +44,7 @@
     <string name="str_cancel_save">Would you like to exit without saving?</string>
 
     <string name="str_login">Sign In</string>
-    <string name="str_id_hint">ID</string>
+    <string name="str_id_hint">EMAIL</string>
     <string name="str_password_hint">PASSWORD</string>
     <string name="str_password_confirm_hint">PASSWORD CONFIRM</string>
     <string name="str_sign_up">Sign Up</string>
@@ -48,5 +56,6 @@
     <string name="str_skip_description">You won’t be able to load saved settings if you skip.</string>
     <string name="str_cover_title">Server settings found. Load them?</string>
     <string name="str_cover_description">If not loaded, your device settings will overwrite the server settings.</string>
+    <string name="str_success_sign_up">Sign-up successful.\nPlease log in.</string>
 
 </resources>
