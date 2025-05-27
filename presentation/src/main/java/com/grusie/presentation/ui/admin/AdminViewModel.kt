@@ -123,7 +123,7 @@ class AdminViewModel @Inject constructor(
             setUiState(BaseUiState.Loading)
             totalSettingUseCases.getServerTotalSettingListUseCase().onSuccess { list ->
                 val newMenuId =
-                    list.filter { it.type == type }.maxOfOrNull { it.menuId }?.plus(1) ?: 10000
+                    list.filter { it.type == type }.maxOfOrNull { it.menuId }?.plus(1) ?: 99999
                 detailTotalSettingDto.value?.let { setDetailTotalSettingDto(it.copy(menuId = newMenuId)) }
             }.onFailure { e ->
                 setEventState(BaseEventState.Error(errorMsg = e.getErrorMsg(context)))
@@ -165,7 +165,7 @@ class AdminViewModel @Inject constructor(
                 } else {
                     totalSettingUseCases.setTotalSettingUseCase(
                         initDetailTotalSettingDto?.toDomain(),
-                        it.copy(imageUrl = imageUrl).toDomain()
+                        it.toDomain()
                     ).onSuccess {
                         setEventState(AdminEventState.Success(SuccessType.SUCCESS_MODIFY))
                     }.onFailure { e ->

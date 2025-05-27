@@ -1,9 +1,7 @@
 package com.grusie.presentation.ui.main
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
@@ -28,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.grusie.presentation.Routes
-import com.grusie.presentation.service.NotificationReceiverService
 
 @Composable
 fun MainScreen(
@@ -58,7 +55,6 @@ fun MainScreen(
 
                 Button(onClick = {
                     if (hasPermission) {
-                        rebindNotificationListenerService(context)
                         Toast.makeText(context, "서비스 재바인딩 시도함", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(context, "먼저 권한을 허용해주세요", Toast.LENGTH_SHORT).show()
@@ -80,23 +76,6 @@ fun MainScreen(
             }
         }
     }
-}
-
-
-fun rebindNotificationListenerService(context: Context) {
-    val cn = ComponentName(context, NotificationReceiverService::class.java)
-    val pm = context.packageManager
-
-    pm.setComponentEnabledSetting(
-        cn,
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-        PackageManager.DONT_KILL_APP
-    )
-    pm.setComponentEnabledSetting(
-        cn,
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-        PackageManager.DONT_KILL_APP
-    )
 }
 
 fun isNotificationListenerEnabled(context: Context): Boolean {

@@ -81,7 +81,7 @@ fun SignUpScreen(
                         try {
                             navController.navigate(eventState.route) {
                                 if (eventState.includeBackStack) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                    popUpTo(Routes.SIGNUP) { inclusive = true }
                                 }
                             }
                         } catch (e: Exception) {

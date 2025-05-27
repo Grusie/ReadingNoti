@@ -3,6 +3,7 @@ package com.grusie.domain.repository
 import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.data.DomainTotalSettingDto
+import kotlinx.coroutines.flow.Flow
 
 interface TotalSettingRepository {
     suspend fun getServerTotalSettingList(type: SettingType?): Result<List<DomainTotalSettingDto>>
@@ -29,4 +30,6 @@ interface TotalSettingRepository {
     suspend fun deleteTotalSettingList(
         domainTotalSettingDocNameList: List<String>
     ): Result<Unit>
+    suspend fun observePersonalSettings(): Flow<List<DomainPersonalSettingDto>>
+    suspend fun observeTotalSettings(): Flow<List<DomainTotalSettingDto>>
 }

@@ -1,4 +1,4 @@
-package com.grusie.presentation.data
+package com.grusie.domain.data.tts
 
 /**
  * 알림이 가지고 있는 실제 데이터 + tts 상태 및 notiType

@@ -47,7 +47,6 @@ object DefaultValues {
         LocalPersonalSettingEntity(
             menuId = it.menuId,
             isEnabled = it.isInitEnabled,
-            type = it.type,
             customData = null
         )
     }

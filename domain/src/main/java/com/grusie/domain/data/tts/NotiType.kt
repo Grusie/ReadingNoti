@@ -1,4 +1,4 @@
-package com.grusie.presentation.data
+package com.grusie.domain.data.tts
 
 data class NotiType(
     val id: Int = -1,   // 설정할 앱 고유 아이디

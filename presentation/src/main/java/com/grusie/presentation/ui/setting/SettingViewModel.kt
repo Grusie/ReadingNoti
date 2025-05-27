@@ -6,9 +6,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.usecase.storage.StorageUseCases
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
+import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
-import com.grusie.presentation.mapper.toUi
 import com.grusie.presentation.ui.base.BaseEventState
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
@@ -27,7 +27,7 @@ class SettingViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val totalSettingUseCases: TotalSettingUseCases,
     private val storageUseCases: StorageUseCases,
-    private val auth: FirebaseAuth
+    val auth: FirebaseAuth
 ) : BaseViewModel() {
     private val _settingSwitchStates = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
     val settingSwitchStates: StateFlow<Map<Int, Boolean>> = _settingSwitchStates.asStateFlow()
@@ -48,7 +48,7 @@ class SettingViewModel @Inject constructor(
             val personalSettingListDeferred =
                 async { totalSettingUseCases.getLocalPersonalSettingListUseCase() }
 
-            val totalSettingList = totalSettingListDeferred.await().map { it.toUi() }
+            val totalSettingList = totalSettingListDeferred.await()
             val personalSettingList = personalSettingListDeferred.await()
 
             val totalSettingMap = totalSettingList.associateBy { it.menuId }
@@ -103,5 +103,10 @@ class SettingViewModel @Inject constructor(
             TOTAL_APP_SETTING.FOCUS_MODE -> {}
             TOTAL_APP_SETTING.BOOT_ENABLED -> {}
         }
+    }
+
+    fun signOut() {
+        auth.signOut()
+        setEventState(BaseEventState.Navigate(Routes.SPLASH, includeBackStack = true))
     }
 }

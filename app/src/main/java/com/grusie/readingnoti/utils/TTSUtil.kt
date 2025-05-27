@@ -1,9 +1,10 @@
-package com.grusie.presentation.utils
+package com.grusie.readingnoti.utils
 
+import android.content.Context
 import android.speech.tts.TextToSpeech
-import com.grusie.presentation.data.AlternativeData
-import com.grusie.presentation.data.GlobalDataStore
-import com.grusie.presentation.data.NOTI_TYPE
+import com.grusie.domain.data.tts.AlternativeData
+import com.grusie.domain.data.tts.TTS_STATE
+import com.grusie.readingnoti.R
 
 class TTSUtil {
     companion object {
@@ -12,21 +13,6 @@ class TTSUtil {
 
             // 들어 온 문장을 대체어 처리
             val ttsContent = getAlterContent(content)
-            GlobalDataStore.getNotiTypeList()
-            when (NOTI_TYPE.getNotiType(notiTypeId)) {
-                // notiType에 따라 값을 설정
-                NOTI_TYPE.KAKAO -> {
-
-                }
-
-                NOTI_TYPE.NONE -> {
-
-                }
-
-                else -> {
-
-                }
-            }
 
             tts.speak(ttsContent, TextToSpeech.QUEUE_FLUSH, null, "$notiTypeId")
         }
@@ -56,12 +42,47 @@ class TTSUtil {
         private fun getAlternativeList(): List<AlternativeData> {
             // TODO: 서버통신을 통해 대체어 목록을 불러올 수 있도록 수정 필요
             val baseAlternativeList = listOf(
-                AlternativeData(id = 0, isRepeatAlter = true, originContent = "ㅋㅋ", "키킥"),
+                AlternativeData(
+                    id = 0,
+                    isRepeatAlter = true,
+                    originContent = "ㅋㅋ",
+                    "키킥"
+                ),
             )
             return listOf(
-                AlternativeData(id = 0, isRepeatAlter = true, originContent = "ㅋㅋ", "키킥"),
-                AlternativeData(id = 0, isRepeatAlter = false, originContent = "아니", "그래")
+                AlternativeData(
+                    id = 0,
+                    isRepeatAlter = true,
+                    originContent = "ㅋㅋ",
+                    "키킥"
+                ),
+                AlternativeData(
+                    id = 0,
+                    isRepeatAlter = false,
+                    originContent = "아니",
+                    "그래"
+                )
             )
+        }
+    }
+}
+
+fun TTS_STATE.getNotiMsgByState(context: Context, ttsState: TTS_STATE = TTS_STATE.NONE): String {
+    return when(ttsState) {
+        TTS_STATE.NONE -> {
+            context.getString(R.string.foreground_noti_content_none)
+        }
+
+        TTS_STATE.SPEAKING -> {
+            context.getString(R.string.foreground_noti_content_speaking)
+        }
+
+        TTS_STATE.ERROR -> {
+            context.getString(R.string.foreground_noti_content_error)
+        }
+
+        else -> {
+            context.getString(R.string.foreground_noti_content_none)
         }
     }
 }

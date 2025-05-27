@@ -1,9 +1,9 @@
 package com.grusie.presentation.data.setting
 
 import com.grusie.domain.data.DomainPersonalSettingDto
-import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
+import com.grusie.domain.data.DomainTotalSettingDto
 
 data class MergedSetting(
-    val totalSetting: UiTotalSettingDto,
+    val totalSetting: DomainTotalSettingDto,
     val personalSetting: DomainPersonalSettingDto?
 )

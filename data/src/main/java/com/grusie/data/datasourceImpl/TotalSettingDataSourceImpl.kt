@@ -110,7 +110,6 @@ class TotalSettingDataSourceImpl @Inject constructor(
                     .set(
                         mapOf(
                             ServerKey.PersonalSetting.KEY_MENU_ID to setting.menuId,
-                            ServerKey.PersonalSetting.KEY_TYPE to setting.type.name,
                             ServerKey.PersonalSetting.KEY_ENABLED to setting.isEnabled,
                             ServerKey.PersonalSetting.KEY_CUSTOM_DATA to setting.customData
                         )
@@ -182,7 +181,17 @@ class TotalSettingDataSourceImpl @Inject constructor(
             } else {
                 firestore.collection(CollectionKind.TOTAL_SETTING_LIST).document(docName)
                     .set(
-                        domainTotalSettingDto
+                        mapOf(
+                            ServerKey.TotalSetting.KEY_MENU_ID to domainTotalSettingDto.menuId,
+                            ServerKey.TotalSetting.KEY_TYPE to domainTotalSettingDto.type,
+                            ServerKey.TotalSetting.KEY_VISIBLE to domainTotalSettingDto.isVisible,
+                            ServerKey.TotalSetting.KEY_DISPLAY_NAME to domainTotalSettingDto.displayName,
+                            ServerKey.TotalSetting.KEY_INIT_ENABLED to domainTotalSettingDto.isInitEnabled,
+                            ServerKey.TotalSetting.KEY_DESCRIPTION to domainTotalSettingDto.description,
+                            ServerKey.TotalSetting.APP.KEY_IMAGE_URL to domainTotalSettingDto.imageUrl,
+                            ServerKey.TotalSetting.APP.KEY_PACKAGE to domainTotalSettingDto.packageName,
+                            ServerKey.TotalSetting.APP.KEY_IS_TINT_USE to domainTotalSettingDto.isTintUse
+                        )
                     ).await()
             }
 

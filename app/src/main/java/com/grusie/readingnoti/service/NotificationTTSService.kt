@@ -1,4 +1,4 @@
-package com.grusie.presentation.service
+package com.grusie.readingnoti.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,13 +9,16 @@ import android.os.Build
 import android.os.IBinder
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.grusie.core.utils.LoggerInterface
+import com.grusie.domain.data.tts.NotificationData
+import com.grusie.domain.data.tts.TTS_STATE
 import com.grusie.presentation.MainActivity
-import com.grusie.presentation.R
-import com.grusie.presentation.data.NotificationData
-import com.grusie.presentation.data.TTS_STATE
-import com.grusie.presentation.utils.TTSUtil
+import com.grusie.readingnoti.R
+import com.grusie.readingnoti.utils.TTSUtil
+import com.grusie.readingnoti.utils.getNotiMsgByState
+import com.grusie.readingnoti.di.TTSServiceEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import java.util.Locale
 
 /**
@@ -37,6 +40,14 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
     private var notificationData: NotificationData? = null
     private var notiBuilder: NotificationCompat.Builder? = null
     private var notiManager: NotificationManager? = null
+    private lateinit var logger: LoggerInterface
+
+    override fun onCreate() {
+        super.onCreate()
+
+        val entryPoint = EntryPointAccessors.fromApplication(applicationContext, TTSServiceEntryPoint::class.java)
+        logger = entryPoint.logger()
+    }
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
@@ -58,7 +69,7 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
             startForeground(SERVICE_ID, notiBuilder?.build())
             tts = TextToSpeech(this, this)
         } catch (e: Exception) {
-            Log.e("${this.javaClass.simpleName}, initTTS Error", "${e.message}")
+            logger.e("${this.javaClass.simpleName}, initTTS Error", "${e.message}")
         }
 
         return START_NOT_STICKY
@@ -112,7 +123,7 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
             }
 
             override fun onError(p0: String?) {
-                Log.e("${this.javaClass.simpleName}, TTS speaking Error", "$p0")
+                logger.e("${this.javaClass.simpleName}, TTS speaking Error", "$p0")
                 changeNotificationMsg(TTS_STATE.ERROR)
             }
         })
@@ -123,7 +134,7 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
             val result = tts.setLanguage(Locale.KOREA)
 
             if (result == TextToSpeech.LANG_NOT_SUPPORTED || result == TextToSpeech.LANG_MISSING_DATA) {
-                Log.e("${this.javaClass.simpleName}, TTS onInit Error", "Language is Not Supported")
+                logger.e("${this.javaClass.simpleName}, TTS onInit Error", "Language is Not Supported")
             } else {
                 speakNotification()
             }
@@ -152,7 +163,7 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
     private fun changeNotificationMsg(ttsState: TTS_STATE = TTS_STATE.NONE){
         notificationData = notificationData?.copy(ttsState = ttsState)
 
-        notiBuilder?.setContentText(TTS_STATE.getNotiMsgByState(this@NotificationTTSService, ttsState = ttsState))
+        notiBuilder?.setContentText(ttsState.getNotiMsgByState(this@NotificationTTSService, ttsState = ttsState))
         notiManager?.notify(SERVICE_ID, notiBuilder?.build())
     }
 }

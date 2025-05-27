@@ -1,4 +1,4 @@
-package com.grusie.presentation.data
+package com.grusie.domain.data.tts
 
 // 대체어를 관리할 데이터 클래스
 data class AlternativeData(

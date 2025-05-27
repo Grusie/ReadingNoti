@@ -142,7 +142,7 @@ fun AdminDetailModify(
                         }
                         navController.navigate(fullRoute) {
                             if (eventState.includeBackStack) {
-                                popUpTo(Routes.ADMIN) { inclusive = true }
+                                popUpTo(Routes.DETAIL_ADMIN_MODIFY) { inclusive = true }
                             }
                         }
                     }

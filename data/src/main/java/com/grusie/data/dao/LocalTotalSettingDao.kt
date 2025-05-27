@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.grusie.data.data.LocalTotalSettingEntity
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
@@ -17,4 +18,7 @@ interface LocalTotalSettingDao {
 
     @Query("DELETE From total_setting")
     suspend fun deleteLocalTotalSettingList()
+
+    @Query("SELECT * FROM total_setting")
+    fun observeTotalSettings(): Flow<List<LocalTotalSettingEntity>>
 }

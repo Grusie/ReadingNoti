@@ -5,6 +5,7 @@ import com.grusie.data.dao.LocalTotalSettingDao
 import com.grusie.data.data.LocalPersonalSettingEntity
 import com.grusie.data.data.LocalTotalSettingEntity
 import com.grusie.data.datasource.LocalTotalSettingDataSource
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class LocalTotalSettingDataSourceImpl @Inject constructor(
@@ -37,7 +38,18 @@ class LocalTotalSettingDataSourceImpl @Inject constructor(
         localPersonalSettingDao.insertLocalPersonalSetting(localPersonalSettingEntity)
     }
 
-    override suspend fun deletePersonalSettingList() {
-        localPersonalSettingDao.deleteLocalPersonalSettingList()
+    override suspend fun deletePersonalSettingList(list: List<Int>?) {
+        if(list != null){
+            localPersonalSettingDao.deletePersonalSettingsByMenuIds(list)
+        } else {
+            localPersonalSettingDao.deleteLocalPersonalSettingList()
+        }
+    }
+
+    override suspend fun observeTotalSettings(): Flow<List<LocalTotalSettingEntity>> {
+        return localTotalSettingDao.observeTotalSettings()
+    }
+    override suspend fun observePersonalSettings(): Flow<List<LocalPersonalSettingEntity>> {
+        return localPersonalSettingDao.observePersonalSettings()
     }
 }

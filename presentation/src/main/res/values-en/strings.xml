@@ -2,11 +2,6 @@
 <resources>
     <string name="app_name">Reading Noti</string>
 
-    <string name="foreground_noti_title">알림 읽기 어플이 실행중입니다.</string>
-    <string name="foreground_noti_content_none">알림을 기다리고 있습니다.</string>
-    <string name="foreground_noti_content_speaking">알림을 읽고 있습니다.</string>
-    <string name="foreground_noti_content_error">알림을 읽는 도중 에러가 발생했습니다.</string>
-
     <string name="common_error_title_notice_msg">Notice</string>
     <string name="common_error_title_msg">Error is Occurred.</string>
     <string name="common_error_data_not_found">Data not found.</string>
@@ -50,6 +45,7 @@
     <string name="str_sign_up">Sign Up</string>
     <string name="str_nickname">NICKNAME</string>
     <string name="str_welcome">Welcome.</string>
+    <string name="str_sign_out">Sign Out</string>
 
     <string name="str_skip">Skip</string>
     <string name="str_skip_title">Skip login?</string>

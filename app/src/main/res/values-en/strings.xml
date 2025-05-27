@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="foreground_noti_title">Notification reading app is running.</string>
+    <string name="foreground_noti_content_none">Waiting for notifications.</string>
+    <string name="foreground_noti_content_speaking">Reading a notification.</string>
+    <string name="foreground_noti_content_error">An error occurred while reading the notification.</string>
+</resources>

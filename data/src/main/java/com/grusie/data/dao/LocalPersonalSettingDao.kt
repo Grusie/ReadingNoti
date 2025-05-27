@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.grusie.data.data.LocalPersonalSettingEntity
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
@@ -20,4 +21,10 @@ interface LocalPersonalSettingDao {
 
     @Query("DELETE From personal_setting")
     suspend fun deleteLocalPersonalSettingList()
+
+    @Query("DELETE FROM personal_setting WHERE menuId IN (:menuIds)")
+    suspend fun deletePersonalSettingsByMenuIds(menuIds: List<Int>)
+
+    @Query("SELECT * FROM personal_setting")
+    fun observePersonalSettings(): Flow<List<LocalPersonalSettingEntity>>
 }

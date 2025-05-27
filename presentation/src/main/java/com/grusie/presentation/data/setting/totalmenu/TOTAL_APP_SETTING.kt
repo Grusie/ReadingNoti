@@ -2,7 +2,6 @@ package com.grusie.presentation.data.setting.totalmenu
 
 import com.grusie.core.common.TotalMenu
 import com.grusie.presentation.data.setting.BaseSettingMenu
-import com.grusie.presentation.ui.setting.SettingViewModel
 
 enum class TOTAL_APP_SETTING(val menuId: Int, val settingMenu: BaseSettingMenu) {
     TOTAL_NOTI_ENABLED(TotalMenu.TOTAL_NOTI_ENABLED.menuId, TotalNotiEnabled()),  // 알림
@@ -21,13 +20,5 @@ enum class TOTAL_APP_SETTING(val menuId: Int, val settingMenu: BaseSettingMenu) 
 
             return result
         }
-    }
-
-    suspend fun onClick(viewModel: SettingViewModel? = null) {
-        settingMenu.onClickAction(this, viewModel)
-    }
-
-    suspend fun onRadioChanged(viewModel: SettingViewModel? = null, isSelected: Boolean) {
-        settingMenu.onRadioChanged(this, viewModel, isSelected)
     }
 }

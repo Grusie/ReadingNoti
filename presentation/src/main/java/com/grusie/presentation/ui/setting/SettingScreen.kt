@@ -1,8 +1,10 @@
 package com.grusie.presentation.ui.setting
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,17 +47,21 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.grusie.core.common.SettingType
+import com.grusie.core.utils.LogType
 import com.grusie.domain.data.DomainPersonalSettingDto
+import com.grusie.domain.data.DomainTotalSettingDto
 import com.grusie.presentation.R
+import com.grusie.presentation.Routes
 import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
-import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
+import com.grusie.presentation.mapper.toUi
 import com.grusie.presentation.ui.base.BaseEventState
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonSwitch
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
+import com.grusie.presentation.utils.getErrorMsg
 import kotlinx.coroutines.launch
 
 @Composable
@@ -82,6 +89,27 @@ fun SettingScreen(
                         errorMsg = eventState.errorMsg
                         isShowErrorDialog = true
                     }
+
+                    is BaseEventState.Navigate -> {
+                        try {
+                            navController.navigate(eventState.route) {
+                                if (eventState.includeBackStack) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            viewModel.log(
+                                LogType.LOG_TYPE_E,
+                                "SettingScreen Navigate Error",
+                                e.getErrorMsg(context)
+                            )
+                            isShowErrorDialog = true
+                        }
+                    }
+
+                    is BaseEventState.BroadCast -> {
+                        context.sendBroadcast(Intent(eventState.broadCastAction))
+                    }
                 }
             }
         }
@@ -102,19 +130,31 @@ fun SettingScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            val firstAppSettingIndex = settingMergedList.indexOfFirst { it.totalSetting.type == SettingType.APP }
+
             LazyColumn() {
-                var isFirstAppSetting = false
-                items(settingMergedList) { settingItem ->
+                itemsIndexed(settingMergedList) { index, settingItem ->
                     val isRadioSelected =
                         settingSwitchStates[settingItem.totalSetting.menuId] ?: false
 
                     if (settingItem.totalSetting.type == SettingType.APP) {
-                        if (!isFirstAppSetting) {
+                        if (index == firstAppSettingIndex) {
+
+                            CustomItem(
+                                title = if (viewModel.auth.currentUser != null) context.getString(R.string.str_sign_out) else context.getString(
+                                    R.string.str_login
+                                ),
+                                onClick = {
+                                    if (viewModel.auth.currentUser != null) viewModel.signOut() else viewModel.setEventState(
+                                        BaseEventState.Navigate(Routes.LOGIN, true)
+                                    )
+                                }
+                            )
+
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.8f),
                                 thickness = 1.dp,
                             )
-                            isFirstAppSetting = true
                         }
 
                         AppSettingListItem(viewModel, settingItem, isRadioSelected)
@@ -149,6 +189,77 @@ fun SettingScreen(
 }
 
 @Composable
+fun CustomItem(
+    title: String = "",
+    description: String = "",
+    onClick: () -> Unit = {},
+    isRadioButtonVisible: Boolean = false,
+    isRadioButtonChecked: Boolean = false,
+    onRadioChecked: () -> Unit = {}
+) {
+    Box(
+        modifier = Modifier
+            .padding(vertical = 8.dp, horizontal = 12.dp)
+            .defaultMinSize(minHeight = 70.dp)
+            .fillMaxWidth()
+            .clickable { onClick() },
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp)
+        ) {
+            Icon(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                painter = painterResource(R.drawable.ic_sign_out),
+                contentDescription = "settingDrawable",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(Modifier.width(8.dp))
+
+            Column(
+                Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 16.sp,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                if(description.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = description,
+                        maxLines = 2,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                        fontSize = 14.sp,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            if (isRadioButtonVisible) {
+                CommonSwitch(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    isChecked = isRadioButtonChecked,
+                    onCheckedChanged = {
+                        onRadioChecked()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun TotalSettingListItem(
     viewModel: SettingViewModel? = null,
     mergedSetting: MergedSetting,
@@ -161,7 +272,7 @@ fun TotalSettingListItem(
 
     if (totalSetting.type == SettingType.GENERAL) {
         // 앱에 정의되어 있지 않은 설정 값일 경우 화면에 표시하지 않는다.
-        totalAppSettingEnum = mergedSetting.totalSetting.totalAppSettingEnum ?: run { return }
+        totalAppSettingEnum = mergedSetting.totalSetting.toUi().totalAppSettingEnum ?: run { return }
     }
 
     val settingMenu = totalAppSettingEnum!!.settingMenu
@@ -221,7 +332,7 @@ fun TotalSettingListItem(
                         isChecked = isRadioSelected,
                         onCheckedChanged = {
                             scope.launch {
-                                totalAppSettingEnum.onRadioChanged(viewModel, !isRadioSelected)
+                                viewModel?.onSettingRadioButtonChanged(totalAppSettingEnum.menuId, !isRadioSelected)
                             }
                         }
                     )
@@ -247,7 +358,7 @@ fun AppSettingListItem(
         Box(
             modifier = Modifier
                 .padding(vertical = 8.dp, horizontal = 12.dp)
-                .defaultMinSize(minHeight = 70.dp)
+                .defaultMinSize(minHeight = 50.dp)
                 .fillMaxWidth(),
             contentAlignment = Alignment.CenterStart
         ) {
@@ -308,15 +419,32 @@ fun AppSettingListItem(
 
 @Composable
 @Preview(showBackground = true, backgroundColor = 0xffffffff)
-fun SettingListCardPreview() {
+fun TotalSettingListItemPreview() {
     TotalSettingListItem(
         mergedSetting = MergedSetting(
-            UiTotalSettingDto(
+            DomainTotalSettingDto(
+                menuId = 100,
+                isVisible = true,
+                isInitEnabled = true,
+                description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
+                displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네"
+            ), DomainPersonalSettingDto()
+        )
+    )
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xffffffff)
+fun AppSettingListItemPreview() {
+    AppSettingListItem(
+        mergedSetting = MergedSetting(
+            DomainTotalSettingDto(
                 isVisible = true,
                 isInitEnabled = true,
                 description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
                 displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
-                totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED
+                packageName = "com.grusie.readingnoti",
+                type = SettingType.APP
             ), DomainPersonalSettingDto()
         )
     )

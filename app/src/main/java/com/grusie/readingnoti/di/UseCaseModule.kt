@@ -13,6 +13,8 @@ import com.grusie.domain.usecase.totalSetting.GetPersonalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.GetServerTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.InitPersonalSettingUseCase
 import com.grusie.domain.usecase.totalSetting.InitTotalSettingListUseCase
+import com.grusie.domain.usecase.totalSetting.ObserveLocalPersonalSettingsUseCase
+import com.grusie.domain.usecase.totalSetting.ObserveLocalTotalSettingsUseCase
 import com.grusie.domain.usecase.totalSetting.SaveLocalTotalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetLocalPersonalSettingListUseCase
 import com.grusie.domain.usecase.totalSetting.SetPersonalSettingListUseCase
@@ -60,7 +62,9 @@ object UseCaseModule {
             saveLocalTotalSettingListUseCase = SaveLocalTotalSettingListUseCase(
                 totalSettingRepository
             ),
-            deleteTotalSettingListUseCase = DeleteTotalSettingListUseCase(totalSettingRepository)
+            deleteTotalSettingListUseCase = DeleteTotalSettingListUseCase(totalSettingRepository),
+            observeLocalTotalSettingsUseCase = ObserveLocalTotalSettingsUseCase(totalSettingRepository),
+            observeLocalPersonalSettingsUseCase = ObserveLocalPersonalSettingsUseCase(totalSettingRepository)
         )
     }
 

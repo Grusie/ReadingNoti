@@ -14,6 +14,8 @@ import com.grusie.domain.data.CommonException
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.data.DomainTotalSettingDto
 import com.grusie.domain.repository.TotalSettingRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class TotalSettingRepositoryImpl @Inject constructor(
@@ -24,7 +26,40 @@ class TotalSettingRepositoryImpl @Inject constructor(
     override suspend fun getServerTotalSettingList(type: SettingType?): Result<List<DomainTotalSettingDto>> {
         return try {
             totalSettingDataSource.getTotalSettingList(type)
-                .map { list -> list.map { it.toDomain() } }
+                .map { totalSettingList ->
+                    // 서버에서 가져온 TotalSettingList 중 로컬의 PersonalSettingList에 없는 것이 있을 경우 값 저장
+                    val localPersonalSettingList = localTotalSettingDataSource.getPersonalSettingList().toMutableList()
+
+                    val localPersonalSettingMap = localPersonalSettingList.associateBy { it.menuId }
+                    val totalSettingMap = totalSettingList.associateBy { it.menuId }
+
+                    val missingSettings = totalSettingList.filter { totalItem ->
+                        localPersonalSettingMap[totalItem.menuId] == null
+                    }
+
+                    val deleteSettings = localPersonalSettingList.filter { deleteSettingItem ->
+                        totalSettingMap[deleteSettingItem.menuId] == null
+                    }
+
+                    if(missingSettings.isNotEmpty()) {
+                        missingSettings.forEach { totalItem ->
+                            val defaultPersonalSetting = LocalPersonalSettingEntity(
+                                menuId = totalItem.menuId,
+                                isEnabled = totalItem.isInitEnabled,
+                                customData = null
+                            )
+
+                            localPersonalSettingList.add(defaultPersonalSetting)
+                        }
+                        saveLocalPersonalSettingList(localPersonalSettingList)
+                    }
+
+                    if(deleteSettings.isNotEmpty()) {
+                        deletePersonalTotalSettingList(deleteSettings.map { it.menuId })
+                    }
+
+                    totalSettingList.map { it.toDomain() }
+                }
         } catch (e: Exception) {
             logger.log(
                 LogType.LOG_TYPE_E,
@@ -66,7 +101,7 @@ class TotalSettingRepositoryImpl @Inject constructor(
 
     override suspend fun initPersonalSetting(uid: String?) {
         try {
-            val localData = localTotalSettingDataSource.getPersonalSettingList()
+            val localData = localTotalSettingDataSource.getPersonalSettingList().toMutableList()
 
             if (uid != null) {
                 if (localData.isEmpty()) {
@@ -85,7 +120,8 @@ class TotalSettingRepositoryImpl @Inject constructor(
                     // Empty가 아닐 경우는 서버에 로컬 데이터를 전송 <- 중간에 네트워크가 끊키거나 해서 로컬에만 적용 되어 있을 수 있기에.
                     setPersonalSettingList(
                         uid,
-                        localData.map { it.toDomain() })
+                        localData.map { it.toDomain() }
+                    )
                 }
             } else {
                 // 로그인 상태가 아닐 경우는 로컬 데이터가 비어있을 경우에만 기본 세팅값 지정
@@ -178,11 +214,23 @@ class TotalSettingRepositoryImpl @Inject constructor(
         localTotalSettingDataSource.deleteTotalSettingList()
     }
 
+    private suspend fun deletePersonalTotalSettingList(list: List<Int>) {
+        localTotalSettingDataSource.deletePersonalSettingList(list)
+    }
+
     private suspend fun saveLocalPersonalSettingList(localPersonalSettingList: List<LocalPersonalSettingEntity>) {
         localTotalSettingDataSource.savePersonalSettingList(localPersonalSettingList)
     }
 
     override suspend fun deleteTotalSettingList(domainTotalSettingDocNameList: List<String>): Result<Unit> {
         return totalSettingDataSource.deleteTotalSettingList(domainTotalSettingDocNameList)
+    }
+
+    override suspend fun observeTotalSettings(): Flow<List<DomainTotalSettingDto>> {
+        return localTotalSettingDataSource.observeTotalSettings().map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun observePersonalSettings(): Flow<List<DomainPersonalSettingDto>> {
+        return localTotalSettingDataSource.observePersonalSettings().map { list -> list.map { it.toDomain() } }
     }
 }

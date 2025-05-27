@@ -32,11 +32,8 @@ class SplashViewModel @Inject constructor(
 
             val startTime = System.currentTimeMillis() // 서버 통신 시작 시간 기록
 
-            val totalSettingJob = async { totalSettingUseCases.initTotalSettingListUseCase() }
-            val personalSettingJob = async { initPersonalSetting() }
-
-            totalSettingJob.await()
-            personalSettingJob.await()
+            totalSettingUseCases.initTotalSettingListUseCase()
+            initPersonalSetting()
 
             val elapsedTime = System.currentTimeMillis() - startTime // 경과 시간 계산
 
