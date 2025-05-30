@@ -33,6 +33,7 @@
 
     <string name="str_cancel">Cancel</string>
     <string name="str_confirm">Confirm</string>
+    <string name="str_next">Next</string>
 
     <string name="str_confirm_save">Would you like to save?</string>
     <string name="str_delete">Would you like to delete?</string>
@@ -54,4 +55,8 @@
     <string name="str_cover_description">If not loaded, your device settings will overwrite the server settings.</string>
     <string name="str_success_sign_up">Sign-up successful.\nPlease log in.</string>
 
+    <string name="str_permission_screen_title">To use Reading Alimi,\nplease allow the permissions below.</string>
+    <string name="str_permission_notification_title">Notification Access Permission</string>
+    <string name="str_permission_notification_description">This permission is required to convert received notifications to TTS (Text-to-Speech) and to save them.</string>
+    <string name="str_permission_notification_need">Notification permission is required.</string>
 </resources>

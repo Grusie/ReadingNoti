@@ -1,8 +1,6 @@
 package com.grusie.readingnoti.service
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Build
@@ -13,11 +11,10 @@ import androidx.core.app.NotificationCompat
 import com.grusie.core.utils.LoggerInterface
 import com.grusie.domain.data.tts.NotificationData
 import com.grusie.domain.data.tts.TTS_STATE
-import com.grusie.presentation.MainActivity
-import com.grusie.readingnoti.R
-import com.grusie.readingnoti.utils.TTSUtil
-import com.grusie.readingnoti.utils.getNotiMsgByState
 import com.grusie.readingnoti.di.TTSServiceEntryPoint
+import com.grusie.readingnoti.utils.NotificationUtil
+import com.grusie.readingnoti.utils.NotificationUtil.Companion.changeNotificationMsg
+import com.grusie.readingnoti.utils.TTSUtil
 import dagger.hilt.android.EntryPointAccessors
 import java.util.Locale
 
@@ -26,9 +23,6 @@ import java.util.Locale
  */
 class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
     companion object {
-        const val CHANNEL_ID = "READING_NOTI_CHANNEL_ID"    // 노티피케이션은 한 가지만 존재할 것이기에 상수로 지정
-        const val SERVICE_ID = 1000     // 포그라운드 서비스를 실행할 때 사용하는 서비스 아이디
-
         const val EXTRA_NOTI_TYPE_ID = "extra_noti_type_id"
         const val EXTRA_NOTIFICATION_TITLE = "extra_notification_title"
         const val EXTRA_NOTIFICATION_SUB_TITLE = "extra_notification_sub_title"
@@ -42,6 +36,8 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
     private var notiManager: NotificationManager? = null
     private lateinit var logger: LoggerInterface
 
+    private var isSpeaking = false
+
     override fun onCreate() {
         super.onCreate()
 
@@ -54,77 +50,54 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        notiTypeId = intent?.getIntExtra(EXTRA_NOTI_TYPE_ID, -1)
+        notiBuilder = NotificationUtil.createNotification(this)
+        notiManager = NotificationUtil.getNotificationManager(this)
+
+        startForeground(NotificationUtil.TTS_SERVICE_ID, notiBuilder?.build())
+
+        notiTypeId = intent?.getIntExtra(EXTRA_NOTI_TYPE_ID, -1) ?: -1
+        if(notiTypeId == -1) {
+            return START_NOT_STICKY
+        }
 
         val title = intent?.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: ""
         val subTitle = intent?.getStringExtra(EXTRA_NOTIFICATION_SUB_TITLE) ?: ""
         val content = intent?.getStringExtra(EXTRA_NOTIFICATION_CONTENT) ?: ""
 
-        if(notiTypeId == null || notiTypeId == -1) return START_NOT_STICKY
-
         notificationData = NotificationData(notiTypeId!!, title, subTitle, content, TTS_STATE.NONE)
-        notiBuilder = createNotification()
 
-        try {
-            startForeground(SERVICE_ID, notiBuilder?.build())
-            tts = TextToSpeech(this, this)
-        } catch (e: Exception) {
-            logger.e("${this.javaClass.simpleName}, initTTS Error", "${e.message}")
-        }
-
-        return START_NOT_STICKY
-    }
-
-    private fun createNotification(): NotificationCompat.Builder? {
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        notiManager = getSystemService(NotificationManager::class.java)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notiManager?.run {
-                val foreChannel = NotificationChannel(
-                    CHANNEL_ID,
-                    packageManager?.getPackageInfo(packageName, 0)?.applicationInfo?.loadLabel(
-                        packageManager
-                    ),
-                    NotificationManager.IMPORTANCE_LOW //중요도. 높을수록 사용자에게 알리는 강도가 높아짐
-
-                )
-                createNotificationChannel(foreChannel)
+        if (!::tts.isInitialized) {
+            try {
+                tts = TextToSpeech(this, this)
+            } catch (e: Exception) {
+                logger.e("${this.javaClass.simpleName}, initTTS Error", "${e.message}")
             }
+        } else {
+            // 이미 초기화된 상태면 알림만 업데이트하고 다시 말하기
+            notiBuilder?.changeNotificationMsg(this@NotificationTTSService, TTS_STATE.NONE)
+            speakNotification()
         }
 
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.foreground_noti_title))
-            .setContentText(getString(R.string.foreground_noti_content_none))
-            .setSmallIcon(R.drawable.ic_launcher_background)
-            .setAutoCancel(false)
-            .setOnlyAlertOnce(true)
-            .setContentIntent(pendingIntent)
+        return START_STICKY
     }
 
     private fun speakNotification() {
-        if (notificationData == null || notiTypeId == null) return
+        if (notificationData == null || notiTypeId == null || isSpeaking) return
 
         TTSUtil.speakContent(tts, notiTypeId!!, notificationData!!.content)
 
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(p0: String?) {
-                changeNotificationMsg(TTS_STATE.SPEAKING)
+                notiBuilder?.changeNotificationMsg(this@NotificationTTSService, TTS_STATE.SPEAKING)
             }
 
             override fun onDone(p0: String?) {
-                changeNotificationMsg(TTS_STATE.NONE)
+                notiBuilder?.changeNotificationMsg(this@NotificationTTSService, TTS_STATE.NONE)
             }
 
             override fun onError(p0: String?) {
                 logger.e("${this.javaClass.simpleName}, TTS speaking Error", "$p0")
-                changeNotificationMsg(TTS_STATE.ERROR)
+                notiBuilder?.changeNotificationMsg(this@NotificationTTSService, TTS_STATE.ERROR)
             }
         })
     }
@@ -154,16 +127,5 @@ class NotificationTTSService : Service(), TextToSpeech.OnInitListener {
             stopForeground(true)
         }
         super.onDestroy()
-    }
-
-    /**
-     * 현재 TTS의 진행 상태를 Notification에 표시하기 위한 함수
-     * @param ttsState 현재 진행중인 TTS의 상태
-     */
-    private fun changeNotificationMsg(ttsState: TTS_STATE = TTS_STATE.NONE){
-        notificationData = notificationData?.copy(ttsState = ttsState)
-
-        notiBuilder?.setContentText(ttsState.getNotiMsgByState(this@NotificationTTSService, ttsState = ttsState))
-        notiManager?.notify(SERVICE_ID, notiBuilder?.build())
     }
 }

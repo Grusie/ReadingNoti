@@ -31,6 +31,7 @@
 
     <string name="str_cancel">취소</string>
     <string name="str_confirm">확인</string>
+    <string name="str_next">다음</string>
 
     <string name="str_confirm_save">저장하시겠습니까?</string>
     <string name="str_delete">삭제하시겠습니까?</string>
@@ -51,4 +52,9 @@
     <string name="str_cover_title">서버에 저장된 설정이 있습니다. 불러오시겠습니까?</string>
     <string name="str_cover_description">불러오지 않으면 이 기기의 설정으로 서버 설정이 덮어쓰기 됩니다.</string>
     <string name="str_success_sign_up">회원가입에 성공했습니다.\n로그인 해주세요.</string>
+
+    <string name="str_permission_screen_title">리딩알리미 이용을 위해\n아래 권한을 허용해 주세요.</string>
+    <string name="str_permission_notification_title">알림 접근 권한</string>
+    <string name="str_permission_notification_description">받아온 알림을 TTS(텍스트 음성변환)모드 및 알림 저장을 위해 권한이 필요합니다.</string>
+    <string name="str_permission_notification_need">알림 권한이 필요합니다.</string>
 </resources>

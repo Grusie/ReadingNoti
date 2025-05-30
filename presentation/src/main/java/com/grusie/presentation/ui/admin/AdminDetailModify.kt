@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
@@ -80,6 +81,7 @@ import com.grusie.presentation.ui.common.CommonTextField
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
 import com.grusie.presentation.ui.common.TitleButtonItem
+import com.grusie.presentation.ui.common.TitleIcon
 import com.grusie.presentation.ui.common.TwoButtonAlertDialog
 
 @Composable
@@ -169,8 +171,8 @@ fun AdminDetailModify(
             title = viewModel.initDetailTotalSettingDto?.displayName ?: "새로 만들기",
             leftButton = listOf(
                 TitleButtonItem(
-                    iconRes = R.drawable.ic_back_black,
-                    {
+                    titleIcon = TitleIcon.Vector(Icons.AutoMirrored.Filled.ArrowBack),
+                    onClick = {
                         viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.CANCEL))
                     },
                 )
@@ -178,19 +180,25 @@ fun AdminDetailModify(
             rightButton = buildList {
                 if (viewModel.initDetailTotalSettingDto != null && viewModel.initDetailTotalSettingDto.type == SettingType.APP) {
                     add(
-                        TitleButtonItem(iconRes = R.drawable.ic_delete, {
-                            viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.DELETE))
-                        })
+                        TitleButtonItem(
+                            titleIcon = TitleIcon.DrawableIcon(R.drawable.ic_delete),
+                            onClick = {
+                                viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.DELETE))
+                            }
+                        )
                     )
                 }
                 add(
-                    TitleButtonItem(iconRes = R.drawable.ic_save, {
-                        if (!viewModel.isEnabledSave()) {
-                            viewModel.setEventState(BaseEventState.Toast("필수 데이터를 입력해주세요."))
-                        } else {
-                            viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.CONFIRM))
-                        }
-                    }, iconTint = MaterialTheme.colorScheme.primary)
+                    TitleButtonItem(
+                        titleIcon = TitleIcon.DrawableIcon(R.drawable.ic_save),
+                        onClick = {
+                            if (!viewModel.isEnabledSave()) {
+                                viewModel.setEventState(BaseEventState.Toast("필수 데이터를 입력해주세요."))
+                            } else {
+                                viewModel.setEventState(AdminEventState.AdminConfirm(AdminViewModel.ConfirmType.CONFIRM))
+                            }
+                        }, iconTint = MaterialTheme.colorScheme.primary
+                    )
                 )
             },
             navController = navController,

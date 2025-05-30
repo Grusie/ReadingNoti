@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +57,7 @@ import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
 import com.grusie.presentation.ui.common.TitleButtonItem
+import com.grusie.presentation.ui.common.TitleIcon
 import com.grusie.presentation.ui.common.debounceClickable
 import kotlinx.serialization.json.Json
 
@@ -107,7 +110,9 @@ fun AdminDetailScreen(
                 navController = navController,
                 rightButton =
                 if (viewModel.adminTypeEnum == AdminSettingEnum.MANAGE_ADD_APP) listOf(
-                    TitleButtonItem(iconRes = R.drawable.ic_add, onClick = {
+                    TitleButtonItem(
+                        titleIcon = TitleIcon.Vector(Icons.Default.Add),
+                        onClick = {
                         viewModel.setEventState(
                             BaseEventState.Navigate(
                                 Routes.DETAIL_ADMIN_MODIFY, args = mutableMapOf(

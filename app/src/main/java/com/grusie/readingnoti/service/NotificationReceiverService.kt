@@ -10,16 +10,14 @@ import com.grusie.core.utils.LoggerInterface
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import com.grusie.presentation.data.setting.MergedSetting
-import com.grusie.presentation.data.setting.totalmenu.TOTAL_APP_SETTING
-import com.grusie.presentation.utils.getErrorMsg
+import com.grusie.readingnoti.SettingObserveManager
 import com.grusie.readingnoti.di.NotiRecvServiceEntryPoint
+import com.grusie.readingnoti.utils.NotificationUtil
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 /**
@@ -42,28 +40,35 @@ class NotificationReceiverService : NotificationListenerService() {
         logger = entryPoint.logger()
         totalSettingUseCases = entryPoint.totalSettingUseCases()
 
-        totalSettingUseCases
+        observeMergedSettings()
+    }
 
-        if (job?.isActive != true) {
-            job = serviceScope.launch {
-                totalSettingUseCases.observeLocalPersonalSettingsUseCase()
-                    .distinctUntilChanged()
-                    .flowOn(Dispatchers.IO)
-                    .collect { settings ->
-                        logger.d("${this::class.simpleName}", "Change RoomDB : $settings")
-                        refreshMergedSetting(settings)
-                    }
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        logger.d("${this::class.simpleName}", "notificationReceiverService Connected")
+        NotificationListenerServiceState.isListenerConnect = true
+    }
+
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+        logger.d("${this::class.simpleName}", "notificationReceiverService Disconnected")
+        NotificationListenerServiceState.isListenerConnect = false
+    }
+
+    override fun onNotificationRemoved(sbn: StatusBarNotification?) {
+        sbn?.let {
+            val notificationId = it.id
+            val packageName = it.packageName
+
+            if(packageName == getPackageName() && notificationId == NotificationUtil.TTS_SERVICE_ID) {
+                NotificationUtil.rePostNotification(this)
             }
         }
+        super.onNotificationRemoved(sbn)
     }
 
     // 알림이 들어오면 무조건 동작하는 함수
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
-        // 전체 알림 설정이 꺼져있을 경우
-        val totalNotiEnabledMenu = mergedGeneralSettingMap[TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED.menuId]
-        if(totalNotiEnabledMenu == null || totalNotiEnabledMenu.personalSetting?.isEnabled == false) {
-            return
-        }
 
         sbn?.packageName?.let { pn ->
             var currentAppSetting: DomainPersonalSettingDto? = null
@@ -78,6 +83,9 @@ class NotificationReceiverService : NotificationListenerService() {
             if(currentAppSetting == null || !currentAppSetting.isEnabled) {
                 return
             }
+
+            logger.i("${this::class.simpleName}", "StatusBarNotification : $sbn")
+            logger.i("${this::class.simpleName}", "Using Notification Data : ${sbn.notification?.extras}")
 
             val intent = Intent(this, NotificationTTSService::class.java).apply {
                 val notificationExtras = sbn.notification.extras
@@ -97,28 +105,25 @@ class NotificationReceiverService : NotificationListenerService() {
         super.onNotificationPosted(sbn)
     }
 
-    private suspend fun refreshMergedSetting(personalSettings: List<DomainPersonalSettingDto>) {
-        try {
-            val totalSettingList = totalSettingUseCases.getLocalTotalSettingListUseCase()
+    private fun observeMergedSettings() {
+        if (job?.isActive == true) return
 
-            val totalSettingMap = totalSettingList.associateBy { it.menuId }
-            val personalSettingMap = personalSettings.associateBy { it.menuId }
+        job = serviceScope.launch {
+            SettingObserveManager.mergedSettingMap.collect { mergedMap ->
+                // 기존 데이터 클리어 후 업데이트
+                mergedGeneralSettingMap.clear()
+                mergedAppSettingMap.clear()
 
-            totalSettingMap.map { (menuId, totalSetting) ->
-                val personalSetting = personalSettingMap[menuId]
-                val mergedSetting = MergedSetting(
-                    totalSetting = totalSetting,
-                    personalSetting = personalSetting
-                )
-
-                if (totalSetting.type == SettingType.GENERAL) {
-                    mergedGeneralSettingMap[menuId] = mergedSetting
-                } else {
-                    mergedAppSettingMap[menuId] = mergedSetting
+                mergedMap.forEach { (menuId, mergedSetting) ->
+                    if (mergedSetting.totalSetting.type == SettingType.GENERAL) {
+                        mergedGeneralSettingMap[menuId] = mergedSetting
+                    } else {
+                        mergedAppSettingMap[menuId] = mergedSetting
+                    }
                 }
+
+                logger.d("${this@NotificationReceiverService::class.simpleName}", "MergedSettings updated")
             }
-        } catch (e: Exception) {
-            logger.e("${this::class.simpleName}", e.getErrorMsg(applicationContext))
         }
     }
 }

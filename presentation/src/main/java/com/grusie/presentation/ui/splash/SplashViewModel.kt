@@ -8,7 +8,6 @@ import com.grusie.presentation.ui.base.BaseEventState
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -44,7 +43,7 @@ class SplashViewModel @Inject constructor(
 
 
             if (auth.currentUser != null) {
-                setEventState(BaseEventState.Navigate(Routes.MAIN, true))
+                setEventState(BaseEventState.Navigate(Routes.PERMISSION, true))
             } else {
                 setEventState(BaseEventState.Navigate(Routes.LOGIN, true))
             }

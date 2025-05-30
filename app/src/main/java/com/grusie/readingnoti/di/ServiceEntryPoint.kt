@@ -1,5 +1,6 @@
 package com.grusie.readingnoti.di
 
+import com.grusie.core.common.TTSServiceController
 import com.grusie.core.utils.LoggerInterface
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import dagger.hilt.EntryPoint
@@ -17,4 +18,11 @@ interface NotiRecvServiceEntryPoint {
 @InstallIn(SingletonComponent::class)
 interface TTSServiceEntryPoint {
     fun logger(): LoggerInterface
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface AppEntryPoint {
+    fun totalSettingUseCases(): TotalSettingUseCases
+    fun ttsServiceController(): TTSServiceController
 }

@@ -100,6 +100,14 @@ class TotalSettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun initPersonalSetting(uid: String?) {
+        val defaultPersonalSettingList = getLocalTotalSettingList().map {
+            LocalPersonalSettingEntity(
+                menuId = it.menuId,
+                isEnabled = it.isInitEnabled,
+                customData = null
+            )
+        }
+
         try {
             val localData = localTotalSettingDataSource.getPersonalSettingList().toMutableList()
 
@@ -126,7 +134,7 @@ class TotalSettingRepositoryImpl @Inject constructor(
             } else {
                 // 로그인 상태가 아닐 경우는 로컬 데이터가 비어있을 경우에만 기본 세팅값 지정
                 if (localData.isEmpty()) {
-                    saveLocalPersonalSettingList(DefaultValues.initPersonalSettingList)
+                    saveLocalPersonalSettingList(defaultPersonalSettingList)
                 }
             }
         } catch (e: Exception) {
@@ -139,7 +147,7 @@ class TotalSettingRepositoryImpl @Inject constructor(
             when (e) {
                 is CommonException.NotFoundOnServer -> {
                     // 로컬DB에 값이 없고 서버에도 값이 없을 경우는 기본 세팅 값 지정
-                    saveLocalPersonalSettingList(DefaultValues.initPersonalSettingList)
+                    saveLocalPersonalSettingList(defaultPersonalSettingList)
                 }
 
                 else -> {

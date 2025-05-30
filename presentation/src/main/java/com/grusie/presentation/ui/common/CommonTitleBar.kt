@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,12 +38,18 @@ import com.grusie.presentation.R
 import com.grusie.presentation.utils.UiUtil
 
 data class TitleButtonItem(
-    @DrawableRes val iconRes: Int? = null,
+    val titleIcon: TitleIcon? = null,
     val onClick: () -> Unit,
     val text: String = "",
     val textColor: Color? = null,
     val iconTint: Color? = null
 )
+
+sealed class TitleIcon {
+    data class Vector(val icon: ImageVector): TitleIcon()
+    data class PainterIcon(val painter: Painter): TitleIcon()
+    data class DrawableIcon(@DrawableRes val drawableIcon: Int): TitleIcon()
+}
 
 @Composable
 fun CommonTitleBar(
@@ -49,8 +59,8 @@ fun CommonTitleBar(
     navController: NavController,
     leftButton: List<TitleButtonItem>? = listOf(
         TitleButtonItem(
-            R.drawable.ic_back_black,
-            { navController.popBackStack() })
+            titleIcon = TitleIcon.Vector(Icons.AutoMirrored.Filled.ArrowBack),
+            onClick = { navController.popBackStack() })
     ),
     rightButton: List<TitleButtonItem>? = null,
     isTitleCenter: Boolean = false
@@ -94,7 +104,7 @@ fun CommonTitleBar(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    leftButton?.forEach { titleButtonItem ->
+                    leftButton?.forEachIndexed { index, titleButtonItem ->
                         val clickHelper = remember { UiUtil.DebounceClickHelper() }
 
                         IconButton(
@@ -103,11 +113,11 @@ fun CommonTitleBar(
                                     titleButtonItem.onClick()
                                 }
                             }) {
-                            titleButtonItem.iconRes?.let {
-                                Icon(
-                                    painterResource(it),
-                                    contentDescription = "left icon",
-                                    tint = MaterialTheme.colorScheme.onSurface
+                            titleButtonItem.titleIcon?.let {
+                                TitleIconView(
+                                    it,
+                                    contentDescription = "title left icon$index",
+                                    tint = titleButtonItem.iconTint ?: MaterialTheme.colorScheme.onSurface
                                 )
                             } ?: run {
                                 Box(
@@ -132,16 +142,16 @@ fun CommonTitleBar(
                     modifier = Modifier,
                     horizontalArrangement = Arrangement.End
                 ) {
-                    rightButton?.forEach { titleButtonItem ->
+                    rightButton?.forEachIndexed { index, titleButtonItem ->
                         IconButton(modifier = Modifier
                             .size(40.dp)
                             .padding(0.dp), onClick = {
                             titleButtonItem.onClick()
                         }) {
-                            titleButtonItem.iconRes?.let {
-                                Icon(
-                                    painterResource(it),
-                                    contentDescription = "right icon",
+                            titleButtonItem.titleIcon?.let {
+                                TitleIconView(
+                                    it,
+                                    contentDescription = "title right icon$index",
                                     tint = titleButtonItem.iconTint ?: MaterialTheme.colorScheme.onSurface
                                 )
                             } ?: run {
@@ -171,6 +181,27 @@ fun CommonTitleBar(
 }
 
 @Composable
+fun TitleIconView(icon: TitleIcon, contentDescription: String?, tint: Color) {
+    when (icon) {
+        is TitleIcon.Vector -> Icon(
+            imageVector = icon.icon,
+            contentDescription = contentDescription,
+            tint = tint
+        )
+        is TitleIcon.PainterIcon -> Icon(
+            painter = icon.painter,
+            contentDescription = contentDescription,
+            tint = tint
+        )
+        is TitleIcon.DrawableIcon -> Icon(
+            painter = painterResource(icon.drawableIcon),
+            contentDescription = contentDescription,
+            tint = tint
+        )
+    }
+}
+
+@Composable
 @Preview
 fun TitleBarPreView() {
     CommonTitleBar(
@@ -181,7 +212,7 @@ fun TitleBarPreView() {
         ),
         rightButton = listOf(
             TitleButtonItem(
-                R.drawable.ic_reboot_black,
+                TitleIcon.DrawableIcon(R.drawable.ic_reboot_black),
                 {},
                 "취소",
                 MaterialTheme.colorScheme.onSurface

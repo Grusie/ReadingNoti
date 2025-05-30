@@ -14,6 +14,7 @@ import com.grusie.presentation.ui.admin.AdminScreen
 import com.grusie.presentation.ui.auth.LoginScreen
 import com.grusie.presentation.ui.auth.SignUpScreen
 import com.grusie.presentation.ui.main.MainScreen
+import com.grusie.presentation.ui.permission.PermissionRequestScreen
 import com.grusie.presentation.ui.setting.SettingScreen
 import com.grusie.presentation.ui.splash.SplashScreen
 
@@ -52,5 +53,17 @@ fun AppNavHost(navController: NavHostController) {
         composable(
             Routes.SIGNUP
         ) { SignUpScreen(navController) }
+
+        composable(
+            Routes.PERMISSION
+        ) {
+            PermissionRequestScreen(
+                onPermissionGranted = {
+                    navController.navigate(Routes.MAIN) {
+                        popUpTo(Routes.PERMISSION) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
