@@ -8,6 +8,8 @@ import com.grusie.readingnoti.R
 
 class TTSUtil {
     companion object {
+        @Volatile var isEnabled: Boolean = false    // TTS 서비스를 사용 중인지 여부를 나타냄 <- 설정의 TOTAL_NOTI_ENABLED 와 연결
+
         fun speakContent(tts:TextToSpeech, notiTypeId: Int, content:String) {
             if(content.isEmpty()) return
 

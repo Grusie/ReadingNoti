@@ -5,6 +5,7 @@ import com.google.firebase.FirebaseApp
 import com.grusie.core.common.TotalMenu
 import com.grusie.core.utils.LoggerProvider
 import com.grusie.readingnoti.di.AppEntryPoint
+import com.grusie.readingnoti.utils.TTSUtil
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +48,7 @@ class Application : Application() {
                 }
                 .distinctUntilChanged()
                 .collect { isEnabled ->
+                    TTSUtil.isEnabled = isEnabled
                     if(isEnabled) {
                         ttsServiceController.startService()
                     } else {

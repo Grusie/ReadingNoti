@@ -1,7 +1,6 @@
 package com.grusie.readingnoti
 
 import com.grusie.core.common.SettingType
-import com.grusie.core.utils.LoggerProvider
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.data.DomainTotalSettingDto
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
@@ -14,20 +13,42 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
+/**
+ * 설정 정보를 Observing 해주는 매니저 객체
+ *
+ * 초기화는 Application에서만 사용할 것
+ * StateFlow로 mergedSettingMap (MenuId to (Total, Personal))를 Observing
+ * 다른 곳에서 사용하기 편하도록 App, General을 따로 분리하여 선언해 둠
+ */
 object SettingObserveManager {
-    private val mergedGeneralSettingMap: MutableMap<Int, MergedSetting> = mutableMapOf()
-    private val mergedAppSettingMap: MutableMap<Int, MergedSetting> = mutableMapOf()
-
     private val _mergedSettingMap = MutableStateFlow<Map<Int, MergedSetting>>(emptyMap())
     val mergedSettingMap: StateFlow<Map<Int, MergedSetting>> = _mergedSettingMap.asStateFlow()
 
+    private val _mergedAppSettingMap = MutableStateFlow<Map<Int, MergedSetting>>(emptyMap())
+    val mergedAppSettingMap: StateFlow<Map<Int, MergedSetting>> = _mergedAppSettingMap.asStateFlow()
+
+    private val _mergedGeneralSettingMap = MutableStateFlow<Map<Int, MergedSetting>>(emptyMap())
+    val mergedGeneralSettingMap: StateFlow<Map<Int, MergedSetting>> = _mergedGeneralSettingMap.asStateFlow()
+
+    private var initialized = false
+
     fun init(scope: CoroutineScope, useCase: TotalSettingUseCases) {
+        if (initialized) return
+
         scope.launch {
             observeMergedSettings(
                 useCase.observeLocalTotalSettingsUseCase(),
                 useCase.observeLocalPersonalSettingsUseCase()
-            ).collect {
-                _mergedSettingMap.value = it
+            ).collect {mergedMap ->
+                _mergedSettingMap.value = mergedMap
+
+                _mergedAppSettingMap.value = mergedMap.filterValues {
+                    it.totalSetting.type == SettingType.APP
+                }
+
+                _mergedGeneralSettingMap.value = mergedMap.filterValues {
+                    it.totalSetting.type == SettingType.GENERAL
+                }
             }
         }
     }
@@ -55,32 +76,6 @@ object SettingObserveManager {
                 totalSetting = totalSetting,
                 personalSetting = personalSetting
             )
-        }
-    }
-
-    private suspend fun refreshMergedSetting(
-        totalSettingList: List<DomainTotalSettingDto>,
-        personalSettings: List<DomainPersonalSettingDto>
-    ) {
-        try {
-            val totalSettingMap = totalSettingList.associateBy { it.menuId }
-            val personalSettingMap = personalSettings.associateBy { it.menuId }
-
-            totalSettingMap.map { (menuId, totalSetting) ->
-                val personalSetting = personalSettingMap[menuId]
-                val mergedSetting = MergedSetting(
-                    totalSetting = totalSetting,
-                    personalSetting = personalSetting
-                )
-
-                if (totalSetting.type == SettingType.GENERAL) {
-                    mergedGeneralSettingMap[menuId] = mergedSetting
-                } else {
-                    mergedAppSettingMap[menuId] = mergedSetting
-                }
-            }
-        } catch (e: Exception) {
-            LoggerProvider.logger.e("${this::class.simpleName}", "refreshMergedSetting Error")
         }
     }
 }
