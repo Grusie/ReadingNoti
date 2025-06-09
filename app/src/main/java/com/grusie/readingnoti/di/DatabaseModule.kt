@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.grusie.data.AppDatabase
 import com.grusie.data.dao.LocalPersonalSettingDao
 import com.grusie.data.dao.LocalTotalSettingDao
+import com.grusie.data.dao.LocalMsgDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,5 +35,10 @@ object DatabaseModule {
     @Provides
     fun providePersonalSettingDao(database: AppDatabase): LocalPersonalSettingDao {
         return database.localPersonalSettingDao()
+    }
+
+    @Provides
+    fun provideMsgDao(database: AppDatabase): LocalMsgDao {
+        return database.localMsgDao()
     }
 }

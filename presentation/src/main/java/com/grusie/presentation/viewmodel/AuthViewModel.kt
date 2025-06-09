@@ -323,7 +323,7 @@ class AuthViewModel @Inject constructor(
     }
 
     fun skipLogin() {
-        setEventState(BaseEventState.Navigate(Routes.PERMISSION, true))
+        setEventState(BaseEventState.Navigate(Routes.MAIN, true))
     }
 
     fun changePasswordVisible() {

@@ -99,7 +99,7 @@ class SettingViewModel @Inject constructor(
 
     suspend fun onSettingClick(totalAppSetting: TOTAL_APP_SETTING) {
         when (totalAppSetting) {
-            TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED -> {}
+            TOTAL_APP_SETTING.COLLECT_NOTI_ENABLED -> {}
             TOTAL_APP_SETTING.FOCUS_MODE -> {}
             TOTAL_APP_SETTING.BOOT_ENABLED -> {}
         }

@@ -41,12 +41,7 @@ class SplashViewModel @Inject constructor(
                 delay(SPLASH_TIME - elapsedTime) // 부족한 시간만큼 delay
             }
 
-
-            if (auth.currentUser != null) {
-                setEventState(BaseEventState.Navigate(Routes.PERMISSION, true))
-            } else {
-                setEventState(BaseEventState.Navigate(Routes.LOGIN, true))
-            }
+            setEventState(BaseEventState.Navigate(Routes.PERMISSION, true, args = mapOf(Routes.PermissionKeys.EXTRA_AUTH to (auth.currentUser != null))))
 
             setUiState(BaseUiState.Idle)
         }

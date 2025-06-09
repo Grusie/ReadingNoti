@@ -5,18 +5,30 @@ import com.grusie.core.common.TotalMenu
 
 object DefaultValues {
 
-    // 기본 전체 설정 리스트(최초 진입 시에만 사용되는 리스트 <- 가능한 서버와 1:1로 대응)
+    // 기본 전체 설정 리스트(최초 진입 시에만 사용되는 리스트 <- 서버와 1:1로 대응)
+    // 전체 설정이 변경 될 경우 앱 업데이트를 진행해야 제대로 적용 됨
     val initLocalTotalSettingList: List<LocalTotalSettingEntity> = listOf(
         LocalTotalSettingEntity(
-            description = "전체 알림 읽기를 키거나, 끌 수 있습니다.",
-            displayName = "알림 읽기",
+            description = "알림 수집을 키거나 끌 수 있습니다.(알림 수집을 허용 하지 않으면, 알림 저장 및 TTS가 동작하지 않습니다.",
+            displayName = "알림 수집",
+            isInitEnabled = false,
+            isVisible = true,
+            type = SettingType.GENERAL,
+            menuId = TotalMenu.COLLECT_NOTI_ENABLED.menuId,
+            imageUrl = null,
+            packageName = null,
+            docName = TotalMenu.COLLECT_NOTI_ENABLED.name
+        ),
+        LocalTotalSettingEntity(
+            description = "TTS 음성으로 알림을 읽게 할 것인지 설정 할 수 있습니다.",
+            displayName = "TTS 알림 읽기",
             isInitEnabled = true,
             isVisible = true,
             type = SettingType.GENERAL,
-            menuId = 100,
+            menuId = TotalMenu.TTS_ENABLED.menuId,
             imageUrl = null,
             packageName = null,
-            docName = TotalMenu.TOTAL_NOTI_ENABLED.name
+            docName = TotalMenu.TTS_ENABLED.name
         ),
         LocalTotalSettingEntity(
             description = "방해금지 시간을 설정 할 수 있습니다.",
@@ -24,7 +36,7 @@ object DefaultValues {
             isInitEnabled = false,
             isVisible = true,
             type = SettingType.GENERAL,
-            menuId = 101,
+            menuId = TotalMenu.FOCUS_MODE.menuId,
             imageUrl = null,
             packageName = null,
             docName = TotalMenu.FOCUS_MODE.name
@@ -35,7 +47,7 @@ object DefaultValues {
             isInitEnabled = true,
             isVisible = true,
             type = SettingType.GENERAL,
-            menuId = 102,
+            menuId = TotalMenu.BOOT_ENABLED.menuId,
             imageUrl = null,
             packageName = null,
             docName = TotalMenu.BOOT_ENABLED.name

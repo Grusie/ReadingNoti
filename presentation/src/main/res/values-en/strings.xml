@@ -59,4 +59,6 @@
     <string name="str_permission_notification_title">Notification Access Permission</string>
     <string name="str_permission_notification_description">This permission is required to convert received notifications to TTS (Text-to-Speech) and to save them.</string>
     <string name="str_permission_notification_need">Notification permission is required.</string>
+
+    <string name="str_see_all">See All</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.grusie.presentation.ui.common
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,7 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -32,6 +39,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.grusie.presentation.R
 
 
 private var lastClickTime = 0L
@@ -142,6 +152,32 @@ fun CommonTextField(
                     }
             }
         }
+    )
+}
+
+@Composable
+fun CommonAppIcon(
+    modifier: Modifier = Modifier,
+    placeholder: Painter = painterResource(R.drawable.ic_image_placeholder),
+    imageUrl: String? = null,
+    isTintUse: Boolean = false
+) {
+    Image(
+        modifier = modifier,
+        painter = if (LocalInspectionMode.current) {
+            placeholder
+        } else {
+            rememberAsyncImagePainter(
+                ImageRequest.Builder(LocalContext.current)
+                    .data(imageUrl)
+                    .placeholder(R.drawable.ic_image_placeholder)
+                    .error(R.drawable.ic_image_placeholder)
+                    .build()
+            )
+        },
+        contentDescription = "app_icon",
+        contentScale = ContentScale.Crop,
+        colorFilter = if (isTintUse) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
     )
 }
 

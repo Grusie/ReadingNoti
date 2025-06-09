@@ -5,7 +5,7 @@ abstract class BaseEventState {
     data class Navigate(
         val route: String,
         val includeBackStack: Boolean = false,
-        val args: Map<String, String> = emptyMap()
+        val args: Map<String, Any> = emptyMap()
     ) : BaseEventState()
     data object PopBackStack : BaseEventState()
 

@@ -1,8 +1,13 @@
 package com.grusie.readingnoti.di
 
+import com.grusie.domain.repository.MsgDataRepository
 import com.grusie.domain.repository.StorageRepository
 import com.grusie.domain.repository.TotalSettingRepository
 import com.grusie.domain.repository.UserRepository
+import com.grusie.domain.usecase.msgData.DeleteAllMsgDataUseCase
+import com.grusie.domain.usecase.msgData.MsgDataUseCases
+import com.grusie.domain.usecase.msgData.ObserveMsgListUseCase
+import com.grusie.domain.usecase.msgData.SaveMsgDataUseCase
 import com.grusie.domain.usecase.storage.StorageUseCases
 import com.grusie.domain.usecase.storage.UploadFileToStorageUseCase
 import com.grusie.domain.usecase.totalSetting.ChangeSettingInfoUseCase
@@ -86,6 +91,17 @@ object UseCaseModule {
             isAdminUseCase = IsAdminUseCase(userRepository),
             setAdminUseCase = SetAdminUseCase(userRepository),
             initUserUseCase = InitUserUseCase(userRepository)
+        )
+    }
+
+    @Provides
+    fun provideMsgDataUseCases(
+        msgDataRepository: MsgDataRepository
+    ): MsgDataUseCases {
+        return MsgDataUseCases(
+            saveMsgDataUseCase = SaveMsgDataUseCase(msgDataRepository),
+            deleteAllMsgDataUseCase = DeleteAllMsgDataUseCase(msgDataRepository),
+            observeMsgListUseCase = ObserveMsgListUseCase(msgDataRepository)
         )
     }
 }

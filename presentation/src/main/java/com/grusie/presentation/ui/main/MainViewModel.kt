@@ -4,26 +4,23 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.grusie.core.common.TotalMenu
+import com.grusie.domain.data.DomainMsgData
 import com.grusie.domain.data.DomainPersonalSettingDto
+import com.grusie.domain.usecase.msgData.MsgDataUseCases
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
 import com.grusie.domain.usecase.user.UserUseCases
+import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.base.BaseViewModel
+import com.grusie.presentation.utils.SettingObserveManager
 import com.grusie.presentation.utils.getErrorMsg
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,43 +29,58 @@ class MainViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val auth: FirebaseAuth,
     private val userUseCases: UserUseCases,
-    private val totalSettingUseCases: TotalSettingUseCases
+    private val totalSettingUseCases: TotalSettingUseCases,
+    private val msgDataUseCases: MsgDataUseCases
 ) : BaseViewModel() {
     private val _isAdmin: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
 
-    private var job: Job? = null
-    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val _mergedAppSettingMap = MutableStateFlow<Map<Int, MergedSetting>>(emptyMap())
+    val mergedAppSettingMap: StateFlow<Map<Int, MergedSetting>> = _mergedAppSettingMap.asStateFlow()
 
-    private val _personalSettingList: MutableStateFlow<List<DomainPersonalSettingDto>> = MutableStateFlow(
-        emptyList()
-    )
-    val personalSettingList: StateFlow<List<DomainPersonalSettingDto>> = _personalSettingList.asStateFlow()
+    private val _mergedGeneralSettingMap = MutableStateFlow<Map<Int, MergedSetting>>(emptyMap())
+    val mergedGeneralSettingMap: StateFlow<Map<Int, MergedSetting>> =
+        _mergedGeneralSettingMap.asStateFlow()
 
-    val isTotalNotiEnabled: StateFlow<Boolean> = _personalSettingList.map { list ->
-        list.find { it.menuId == TotalMenu.TOTAL_NOTI_ENABLED.menuId }?.isEnabled == true
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), false)
+    private val _msgDataList: MutableStateFlow<List<DomainMsgData>> = MutableStateFlow(emptyList())
+    val msgDataList: StateFlow<List<DomainMsgData>> = _msgDataList.asStateFlow()
+
+    private val _isEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isEnabled: StateFlow<Boolean> = _isEnabled.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            checkAdmin()
+        checkAdmin()
+        collectMergedSettingMap()
+        collectMsgList()
+    }
 
-            if (job?.isActive != true) {
-                job = serviceScope.launch {
-                    totalSettingUseCases.observeLocalPersonalSettingsUseCase()
-                        .distinctUntilChanged()
-                        .flowOn(Dispatchers.IO)
-                        .collect { settings ->
-                            log("Change RoomDB : $settings")
-                            _personalSettingList.emit(settings)
-                        }
-                }
+    private fun collectMergedSettingMap() {
+        viewModelScope.launch {
+            combine(
+                SettingObserveManager.mergedGeneralSettingMap,
+                SettingObserveManager.mergedAppSettingMap
+            ) { general, app ->
+                general to app
+            }.collectLatest { (general, app) ->
+                _mergedGeneralSettingMap.value = general
+                _mergedAppSettingMap.value = app
+
+                _isEnabled.value =
+                    general[TotalMenu.COLLECT_NOTI_ENABLED.menuId]?.personalSetting?.isEnabled == true
             }
         }
     }
 
-    private suspend fun checkAdmin() {
+    private fun collectMsgList(){
+        viewModelScope.launch {
+            msgDataUseCases.observeMsgListUseCase(menuId = null)
+                .collect { msgList ->
+                    _msgDataList.value = msgList
+                }
+        }
+    }
 
+    private fun checkAdmin() {
         viewModelScope.launch {
             setUiState(BaseUiState.Loading)
 

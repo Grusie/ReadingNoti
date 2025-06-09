@@ -4,8 +4,8 @@ import android.app.Application
 import com.google.firebase.FirebaseApp
 import com.grusie.core.common.TotalMenu
 import com.grusie.core.utils.LoggerProvider
+import com.grusie.presentation.utils.SettingObserveManager
 import com.grusie.readingnoti.di.AppEntryPoint
-import com.grusie.readingnoti.utils.TTSUtil
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -42,13 +42,12 @@ class Application : Application() {
         val ttsServiceController = entryPoint.ttsServiceController()
 
         applicationScope.launch {
-            SettingObserveManager.mergedSettingMap
+            SettingObserveManager.mergedGeneralSettingMap
                 .map { mergedMap ->
-                    mergedMap[TotalMenu.TOTAL_NOTI_ENABLED.menuId]?.personalSetting?.isEnabled == true
+                    mergedMap[TotalMenu.COLLECT_NOTI_ENABLED.menuId]?.personalSetting?.isEnabled == true
                 }
                 .distinctUntilChanged()
                 .collect { isEnabled ->
-                    TTSUtil.isEnabled = isEnabled
                     if(isEnabled) {
                         ttsServiceController.startService()
                     } else {

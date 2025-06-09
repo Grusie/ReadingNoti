@@ -5,21 +5,24 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.grusie.data.dao.LocalMsgDao
 import com.grusie.data.dao.LocalPersonalSettingDao
 import com.grusie.data.dao.LocalTotalSettingDao
+import com.grusie.data.data.LocalMsgEntity
 import com.grusie.data.data.LocalPersonalSettingEntity
 import com.grusie.data.data.LocalTotalSettingEntity
 import com.grusie.data.mapper.RoomTypeConverter
 
 
 @Database(
-    entities = [LocalTotalSettingEntity::class, LocalPersonalSettingEntity::class],
+    entities = [LocalTotalSettingEntity::class, LocalPersonalSettingEntity::class, LocalMsgEntity::class],
     version = 6
 )
 @TypeConverters(RoomTypeConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun localTotalSettingDao(): LocalTotalSettingDao
     abstract fun localPersonalSettingDao(): LocalPersonalSettingDao
+    abstract fun localMsgDao(): LocalMsgDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {

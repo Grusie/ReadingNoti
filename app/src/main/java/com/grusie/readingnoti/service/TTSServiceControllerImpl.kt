@@ -13,7 +13,7 @@ class TTSServiceControllerImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ): TTSServiceController {
     override fun startService() {
-        val intent = Intent(context, NotificationTTSService::class.java)
+        val intent = Intent(context, MainService::class.java)
         ContextCompat.startForegroundService(context, intent)
         if(!NotificationListenerServiceState.isListenerConnect) {
             rebindNotificationListenerService(context)
@@ -21,7 +21,7 @@ class TTSServiceControllerImpl @Inject constructor(
     }
 
     override fun stopService() {
-        val intent = Intent(context, NotificationTTSService::class.java)
+        val intent = Intent(context, MainService::class.java)
         context.stopService(intent)
     }
 

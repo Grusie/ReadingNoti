@@ -44,7 +44,14 @@ fun SplashScreen(
             if (eventState != null) {
                 when (eventState) {
                     is BaseEventState.Navigate -> {
-                        navController.navigate(eventState.route) {
+                        val fullRoute = buildString {
+                            append(eventState.route)
+                            if (eventState.args.isNotEmpty()) {
+                                append("?")
+                                append(eventState.args.entries.joinToString("&") { "${it.key}=${it.value}" })
+                            }
+                        }
+                        navController.navigate(fullRoute) {
                             if (eventState.includeBackStack) {
                                 popUpTo(Routes.SPLASH) { inclusive = true }
                             }

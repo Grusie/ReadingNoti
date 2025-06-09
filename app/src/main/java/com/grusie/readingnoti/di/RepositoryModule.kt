@@ -1,8 +1,10 @@
 package com.grusie.readingnoti.di
 
+import com.grusie.data.repositoryImpl.MsgDataRepositoryImpl
 import com.grusie.data.repositoryImpl.StorageRepositoryImpl
 import com.grusie.data.repositoryImpl.TotalSettingRepositoryImpl
 import com.grusie.data.repositoryImpl.UserRepositoryImpl
+import com.grusie.domain.repository.MsgDataRepository
 import com.grusie.domain.repository.StorageRepository
 import com.grusie.domain.repository.TotalSettingRepository
 import com.grusie.domain.repository.UserRepository
@@ -29,4 +31,9 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         impl: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    abstract fun bindMsgRepository(
+        impl: MsgDataRepositoryImpl
+    ): MsgDataRepository
 }

@@ -18,4 +18,8 @@ object Routes {
     object AdminKeys {
         const val EXTRA_ADMIN_TYPE = "extra_admin_type"
     }
+
+    object PermissionKeys {
+        const val EXTRA_AUTH = "extra_auth"
+    }
 }

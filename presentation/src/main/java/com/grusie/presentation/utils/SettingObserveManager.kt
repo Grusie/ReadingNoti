@@ -1,4 +1,4 @@
-package com.grusie.readingnoti
+package com.grusie.presentation.utils
 
 import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainPersonalSettingDto
@@ -39,7 +39,7 @@ object SettingObserveManager {
             observeMergedSettings(
                 useCase.observeLocalTotalSettingsUseCase(),
                 useCase.observeLocalPersonalSettingsUseCase()
-            ).collect {mergedMap ->
+            ).collect { mergedMap ->
                 _mergedSettingMap.value = mergedMap
 
                 _mergedAppSettingMap.value = mergedMap.filterValues {

@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -51,23 +50,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.grusie.core.common.SettingFieldEnum
 import com.grusie.core.common.SettingType
 import com.grusie.presentation.R
@@ -76,6 +68,7 @@ import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.base.BaseEventState
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
+import com.grusie.presentation.ui.common.CommonAppIcon
 import com.grusie.presentation.ui.common.CommonSwitch
 import com.grusie.presentation.ui.common.CommonTextField
 import com.grusie.presentation.ui.common.CommonTitleBar
@@ -700,24 +693,10 @@ fun ModifyListFileItem(
                         modifier = Modifier.size(72.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Image(
-                            modifier = Modifier
-                                .size(60.dp),
-                            painter = if (LocalInspectionMode.current) {
-                                painterResource(R.drawable.ic_image_placeholder)
-                            } else {
-                                rememberAsyncImagePainter(
-                                    ImageRequest.Builder(LocalContext.current)
-                                        .data(initContent)
-                                        .diskCachePolicy(CachePolicy.DISABLED)
-                                        .memoryCachePolicy(CachePolicy.DISABLED)
-                                        .placeholder(R.drawable.ic_image_placeholder)
-                                        .build()
-                                )
-                            },
-                            contentScale = ContentScale.Crop,
-                            contentDescription = "app_icon",
-                            colorFilter = if (isInitIconTint) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
+                        CommonAppIcon(
+                            modifier = Modifier.size(60.dp),
+                            imageUrl = initContent,
+                            isTintUse = isInitIconTint
                         )
                     }
                 }
@@ -736,25 +715,12 @@ fun ModifyListFileItem(
                         modifier = Modifier.size(72.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            modifier = Modifier
-                                .size(60.dp),
-                            painter = if (LocalInspectionMode.current) {
-                                painterResource(R.drawable.ic_image_placeholder)
-                            } else {
-                                rememberAsyncImagePainter(
-                                    ImageRequest.Builder(LocalContext.current)
-                                        .data(content)
-                                        .diskCachePolicy(CachePolicy.DISABLED)
-                                        .memoryCachePolicy(CachePolicy.DISABLED)
-                                        .placeholder(R.drawable.ic_image_placeholder)
-                                        .build()
-                                )
-                            },
-                            contentDescription = "app_icon",
-                            contentScale = ContentScale.Crop,
-                            colorFilter = if (isIconTint) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
+                        CommonAppIcon(
+                            modifier = Modifier.size(60.dp),
+                            imageUrl = content,
+                            isTintUse = isIconTint
                         )
+
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)

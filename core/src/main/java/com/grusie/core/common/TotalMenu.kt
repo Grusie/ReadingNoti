@@ -8,9 +8,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class TotalMenu(val menuId: Int) {
-    TOTAL_NOTI_ENABLED(MenuId.TOTAL_NOTI_ENABLED),    // 알림
+    COLLECT_NOTI_ENABLED(MenuId.COLLECT_NOTI_ENABLED), // 알림 수집
     FOCUS_MODE(MenuId.FOCUS_MODE),    // 방해금지
-    BOOT_ENABLED(MenuId.BOOT_ENABLED); // 부팅 시 자동 실행
+    BOOT_ENABLED(MenuId.BOOT_ENABLED), // 부팅 시 자동 실행
+    TTS_ENABLED(MenuId.TTS_ENABLED);    // TTS 실행 여부
 
     companion object {
         fun from(menuId: Int): TotalMenu? {
@@ -18,9 +19,10 @@ enum class TotalMenu(val menuId: Int) {
         }
 
         object MenuId {
-            const val TOTAL_NOTI_ENABLED = 100
-            const val FOCUS_MODE = 101
-            const val BOOT_ENABLED = 102
+            const val COLLECT_NOTI_ENABLED = 100
+            const val TTS_ENABLED = 101
+            const val FOCUS_MODE = 102
+            const val BOOT_ENABLED = 103
         }
     }
 }

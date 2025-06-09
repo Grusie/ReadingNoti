@@ -1,9 +1,11 @@
 package com.grusie.readingnoti.di
 
+import com.grusie.data.datasource.LocalMsgDataSource
 import com.grusie.data.datasource.LocalTotalSettingDataSource
 import com.grusie.data.datasource.StorageDataSource
 import com.grusie.data.datasource.TotalSettingDataSource
 import com.grusie.data.datasource.UserDataSource
+import com.grusie.data.datasourceImpl.LocalMsgDataSourceImpl
 import com.grusie.data.datasourceImpl.LocalTotalSettingDataSourceImpl
 import com.grusie.data.datasourceImpl.StorageDataSourceImpl
 import com.grusie.data.datasourceImpl.TotalSettingDataSourceImpl
@@ -28,4 +30,7 @@ abstract class DataSourceModule {
 
     @Binds
     abstract fun bindUserDataSource(impl: UserDataSourceImpl): UserDataSource
+
+    @Binds
+    abstract fun bindLocalMsgDataSource(impl: LocalMsgDataSourceImpl): LocalMsgDataSource
 }

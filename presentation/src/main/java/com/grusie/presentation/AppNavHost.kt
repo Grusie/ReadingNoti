@@ -3,6 +3,7 @@ package com.grusie.presentation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,6 +23,7 @@ import com.grusie.presentation.ui.splash.SplashScreen
 fun AppNavHost(navController: NavHostController) {
     val adminTypeArgs = Routes.AdminKeys.EXTRA_ADMIN_TYPE
     val dataArgs = Routes.Keys.EXTRA_DATA
+    val extraAuth = Routes.PermissionKeys.EXTRA_AUTH
 
     NavHost(
         navController,
@@ -55,14 +57,23 @@ fun AppNavHost(navController: NavHostController) {
         ) { SignUpScreen(navController) }
 
         composable(
-            Routes.PERMISSION
-        ) {
-            PermissionRequestScreen(
-                onPermissionGranted = {
-                    navController.navigate(Routes.MAIN) {
-                        popUpTo(Routes.PERMISSION) { inclusive = true }
+            "${Routes.PERMISSION}?${extraAuth}={$extraAuth}",
+            arguments = listOf(
+                navArgument(extraAuth) { type = NavType.BoolType}
+            )
+        ) {backStackEntry ->
+            val isAuth = backStackEntry.arguments?.getBoolean(extraAuth) ?: false
+            val onPermissionGranted = remember(isAuth) {
+                {
+                    val navigation = if (isAuth) Routes.MAIN else Routes.LOGIN
+                    navController.navigate(navigation) {
+                        popUpTo("${Routes.PERMISSION}?${extraAuth}={$extraAuth}") { inclusive = true }
                     }
                 }
+            }
+
+            PermissionRequestScreen(
+                onPermissionGranted = onPermissionGranted
             )
         }
     }

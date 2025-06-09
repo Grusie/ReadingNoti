@@ -2,7 +2,6 @@ package com.grusie.presentation.ui.admin
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,19 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainUserDto
 import com.grusie.presentation.R
@@ -54,6 +47,7 @@ import com.grusie.presentation.data.setting.totalmenu.UiTotalSettingDto
 import com.grusie.presentation.ui.base.BaseEventState
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
+import com.grusie.presentation.ui.common.CommonAppIcon
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
 import com.grusie.presentation.ui.common.TitleButtonItem
@@ -345,24 +339,12 @@ fun AppListItem(
             .padding(start = 20.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
+        CommonAppIcon(
             modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .size(24.dp),
-            painter = if (LocalInspectionMode.current) {
-                painterResource(R.drawable.ic_image_placeholder)
-            } else {
-                rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(appItem.imageUrl)
-                        .diskCachePolicy(CachePolicy.DISABLED)
-                        .memoryCachePolicy(CachePolicy.DISABLED)
-                        .placeholder(R.drawable.ic_image_placeholder)
-                        .build()
-                )
-            },
-            contentDescription = "app_icon",
-            colorFilter = if (appItem.isTintUse) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
+            imageUrl = appItem.imageUrl,
+            isTintUse = appItem.isTintUse
         )
 
         Spacer(Modifier.width(8.dp))
@@ -412,7 +394,7 @@ fun TotalSettingListItemPreview() {
         isInitEnabled = true,
         description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
         displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
-        totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED
+        totalAppSettingEnum = TOTAL_APP_SETTING.COLLECT_NOTI_ENABLED
     )
     TotalSettingListItem(
         totalSettingDto
@@ -427,7 +409,7 @@ fun AppListItemPreview() {
         isInitEnabled = true,
         description = "테스트 세팅 설명입니다. 2줄까지 가능하기에 길게 한 번 넣어보도록 하죠 이게 과연 중앙이 맞는지 의심되는군요 중앙정렬 치고는 위로 좀 올라와 있는 거 같은데... 어이없네요",
         displayName = "얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네, 얜 맥스라인 1이예요 근데 ellipsize 넣어야겠네",
-        totalAppSettingEnum = TOTAL_APP_SETTING.TOTAL_NOTI_ENABLED,
+        totalAppSettingEnum = TOTAL_APP_SETTING.COLLECT_NOTI_ENABLED,
         imageUrl = "imageUrl",
         packageName = "com.grusie.readingnoti"
     )
