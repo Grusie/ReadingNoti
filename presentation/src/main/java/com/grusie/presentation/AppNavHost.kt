@@ -15,6 +15,8 @@ import com.grusie.presentation.ui.admin.AdminScreen
 import com.grusie.presentation.ui.auth.LoginScreen
 import com.grusie.presentation.ui.auth.SignUpScreen
 import com.grusie.presentation.ui.main.MainScreen
+import com.grusie.presentation.ui.msg.MsgAppListScreen
+import com.grusie.presentation.ui.msg.MsgListScreen
 import com.grusie.presentation.ui.permission.PermissionRequestScreen
 import com.grusie.presentation.ui.setting.SettingScreen
 import com.grusie.presentation.ui.splash.SplashScreen
@@ -24,6 +26,8 @@ fun AppNavHost(navController: NavHostController) {
     val adminTypeArgs = Routes.AdminKeys.EXTRA_ADMIN_TYPE
     val dataArgs = Routes.Keys.EXTRA_DATA
     val extraAuth = Routes.PermissionKeys.EXTRA_AUTH
+    val extraAppId = Routes.MsgKeys.EXTRA_APP_ID
+    val extraAppDisplayName = Routes.MsgKeys.EXTRA_APP_NAME
 
     NavHost(
         navController,
@@ -75,6 +79,17 @@ fun AppNavHost(navController: NavHostController) {
             PermissionRequestScreen(
                 onPermissionGranted = onPermissionGranted
             )
+        }
+
+        composable(Routes.MSG_APP_LIST) { MsgAppListScreen(navController) }
+        composable(
+            "${Routes.MSG_LIST}?${extraAppId}={$extraAppId}&${extraAppDisplayName}={$extraAppDisplayName}",
+            arguments = listOf(
+                navArgument(extraAppId) { type = NavType.IntType},
+                navArgument(extraAppDisplayName) { type = NavType.StringType}
+            )
+        ) {
+            MsgListScreen(navController)
         }
     }
 }

@@ -23,6 +23,8 @@
     <string name="title_main">Home</string>
     <string name="title_login">Login</string>
     <string name="title_admin">Admin Page</string>
+    <string name="title_msg_app_list">Message App List</string>
+    <string name="title_msg_list">Message List</string>
 
     <string name="manage_admin_title">Manage Admin</string>
     <string name="manage_admin_content">You can add or remove administrators.</string>
@@ -61,4 +63,5 @@
     <string name="str_permission_notification_need">Notification permission is required.</string>
 
     <string name="str_see_all">See All</string>
+    <string name="str_empty_msg">Message List is Empty.</string>
 </resources>

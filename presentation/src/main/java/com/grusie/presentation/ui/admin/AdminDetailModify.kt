@@ -89,7 +89,7 @@ fun AdminDetailModify(
     var errorMsg by remember { mutableStateOf("") }
     var isShowErrorDialog by remember { mutableStateOf(false) }
     var isShowConfirmDialog by remember { mutableStateOf(false) }
-    var isConfirmType by remember { mutableIntStateOf(0) }
+    var confirmType by remember { mutableIntStateOf(0) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -146,7 +146,7 @@ fun AdminDetailModify(
                         focusManager.clearFocus()
                         keyboardController?.hide()
                         isShowConfirmDialog = true
-                        isConfirmType = eventState.type
+                        confirmType = eventState.type
                     }
 
                     is AdminEventState.Success -> {
@@ -384,7 +384,7 @@ fun AdminDetailModify(
             TwoButtonAlertDialog(
                 isShowDialog = isShowConfirmDialog,
                 onClickConfirm = {
-                    when (isConfirmType) {
+                    when (confirmType) {
                         AdminViewModel.ConfirmType.CONFIRM -> {
                             viewModel.setTotalSettingChanged()
                         }
@@ -401,7 +401,7 @@ fun AdminDetailModify(
                 },
                 onClickCancel = { isShowConfirmDialog = false },
                 title = context.getString(R.string.common_error_title_notice_msg),
-                content = when (isConfirmType) {
+                content = when (confirmType) {
                     AdminViewModel.ConfirmType.CONFIRM -> context.getString(R.string.str_confirm_save)
                     AdminViewModel.ConfirmType.DELETE -> context.getString(R.string.str_delete)
                     else -> context.getString(R.string.str_cancel_save)

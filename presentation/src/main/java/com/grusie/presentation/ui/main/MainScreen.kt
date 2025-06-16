@@ -1,6 +1,8 @@
 package com.grusie.presentation.ui.main
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -22,8 +24,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Build
@@ -65,6 +69,7 @@ import com.grusie.presentation.ui.base.BaseEventState
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonAppIcon
+import com.grusie.presentation.ui.common.CommonMsgDetail
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.TitleButtonItem
 import com.grusie.presentation.ui.common.TitleIcon
@@ -153,11 +158,28 @@ fun MainScreen(
         ) { paddingValues ->
             Box(modifier = Modifier.padding(paddingValues)) {
                 val isEnabled = viewModel.isEnabled.collectAsState().value
+                val verticalScroll = rememberScrollState()
+                var isMsgDetailViewVisible by remember { mutableStateOf(false) }
+                var msgDetail: DomainMsgData? by remember { mutableStateOf(null) }
+
+                val activity = LocalActivity.current
+
+                BackHandler {
+                    if(isMsgDetailViewVisible) {
+                        isMsgDetailViewVisible = false
+                    } else {
+                        val popped = navController.popBackStack()
+                        if (!popped) {
+                            activity?.finish() // 앱 종료
+                        }
+                    }
+                }
 
                 Column(
                     Modifier
-                        .fillMaxSize()
+                        .verticalScroll(verticalScroll)
                         .padding(top = 60.dp)
+                        .fillMaxSize()
                 ) {
                     AuraPulseCircle(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -177,7 +199,7 @@ fun MainScreen(
                         .align(Alignment.End)
                         .padding(end = 12.dp, bottom = 4.dp)
                         .clickable {
-
+                            viewModel.setEventState(BaseEventState.Navigate(Routes.MSG_APP_LIST))
                         }
                         .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -201,14 +223,23 @@ fun MainScreen(
                                     ?: DomainTotalSettingDto(
                                         menuId = item.menuId,
                                         displayName = "UnKnownApp"
-                                    )
-                            ) {
-                            }
+                                    ),
+                                onClick = {
+                                    msgDetail = it
+                                    isMsgDetailViewVisible = true
+                                }
+                            )
                         }
                         item {
                             Spacer(modifier = Modifier.width(12.dp))
                         }
                     }
+                }
+
+                if(isMsgDetailViewVisible) {
+                    msgDetail?.let { CommonMsgDetail(it) {
+                        isMsgDetailViewVisible = false
+                    } }
                 }
 
                 when (uiState) {
@@ -244,7 +275,7 @@ fun AuraPulseCircle(
     }
 
     // 중심 원 크기 (dp)
-    val centerButtonSizeDp = LocalConfiguration.current.screenHeightDp.dp * 0.2f
+    val centerButtonSizeDp = maxOf(LocalConfiguration.current.screenHeightDp.dp * 0.2f, 160.dp)
     val auraMaxSizeDp = centerButtonSizeDp * 0.65f
 
     val density = LocalDensity.current
@@ -294,7 +325,7 @@ fun OnOffButton(
 fun MsgListItem(
     msgData: DomainMsgData,
     appSetting: DomainTotalSettingDto,
-    onClick: () -> Unit
+    onClick: (DomainMsgData) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -305,7 +336,9 @@ fun MsgListItem(
             )
             .clip(shape = RoundedCornerShape(8.dp))
             .size(200.dp, 200.dp)
-            .clickable { }
+            .clickable {
+                onClick(msgData)
+            }
             .padding(8.dp)
     ) {
         Column {
@@ -321,17 +354,7 @@ fun MsgListItem(
                 Text(
                     text = appSetting.displayName,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-
-            if(msgData.title.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = msgData.title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
@@ -341,11 +364,25 @@ fun MsgListItem(
                 Text(
                     text = msgData.subTitle,
                     maxLines = 1,
+                    fontSize = 14.sp,
                     overflow = TextOverflow.Ellipsis,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
+
+            if(msgData.title.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(if(msgData.subTitle.isNotEmpty()) 2.dp else 4.dp))
+                Text(
+                    text = msgData.title,
+                    maxLines = 1,
+                    fontSize = 14.sp,
+                    overflow = TextOverflow.Ellipsis,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(

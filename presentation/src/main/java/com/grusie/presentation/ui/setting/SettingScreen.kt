@@ -2,7 +2,6 @@ package com.grusie.presentation.ui.setting
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,7 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,9 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.grusie.core.common.SettingType
 import com.grusie.core.utils.LogType
 import com.grusie.domain.data.DomainPersonalSettingDto
@@ -58,6 +53,7 @@ import com.grusie.presentation.mapper.toUi
 import com.grusie.presentation.ui.base.BaseEventState
 import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
+import com.grusie.presentation.ui.common.CommonAppIcon
 import com.grusie.presentation.ui.common.CommonSwitch
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
@@ -144,6 +140,7 @@ fun SettingScreen(
                                 title = if (viewModel.auth.currentUser != null) context.getString(R.string.str_sign_out) else context.getString(
                                     R.string.str_login
                                 ),
+                                icon = painterResource(R.drawable.ic_sign_out),
                                 onClick = {
                                     if (viewModel.auth.currentUser != null) viewModel.signOut() else viewModel.setEventState(
                                         BaseEventState.Navigate(Routes.LOGIN, true)
@@ -193,16 +190,17 @@ fun CustomItem(
     title: String = "",
     description: String = "",
     onClick: () -> Unit = {},
+    icon: Painter? = null,
     isRadioButtonVisible: Boolean = false,
     isRadioButtonChecked: Boolean = false,
     onRadioChecked: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
-            .padding(vertical = 8.dp, horizontal = 12.dp)
-            .defaultMinSize(minHeight = 70.dp)
             .fillMaxWidth()
-            .clickable { onClick() },
+            .defaultMinSize(minHeight = 70.dp)
+            .clickable { onClick() }
+            .padding(vertical = 8.dp, horizontal = 12.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -210,13 +208,15 @@ fun CustomItem(
                 .fillMaxWidth()
                 .padding(start = 8.dp)
         ) {
-            Icon(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                painter = painterResource(R.drawable.ic_sign_out),
-                contentDescription = "settingDrawable",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(Modifier.width(8.dp))
+            if(icon != null) {
+                Icon(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    painter = icon,
+                    contentDescription = "settingDrawable",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.width(8.dp))
+            }
 
             Column(
                 Modifier
@@ -367,36 +367,23 @@ fun AppSettingListItem(
                     .fillMaxWidth()
                     .padding(start = 8.dp)
             ) {
-                Image(
+                CommonAppIcon(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .size(24.dp),
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(appSetting.imageUrl)
-                            .diskCachePolicy(CachePolicy.DISABLED)
-                            .memoryCachePolicy(CachePolicy.DISABLED)
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .build()
-                    ),
-                    contentDescription = "app_icon",
-                    colorFilter = if (appSetting.isTintUse) ColorFilter.tint(MaterialTheme.colorScheme.onBackground) else null
+                    imageUrl = appSetting.imageUrl,
+                    isTintUse = appSetting.isTintUse
                 )
                 Spacer(Modifier.width(8.dp))
 
-                Column(
-                    Modifier
-                        .align(Alignment.CenterVertically)
-                        .weight(1f)
-                ) {
-                    Text(
-                        text = appSetting.displayName,
-                        maxLines = 1,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 16.sp,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Text(
+                    modifier = Modifier.align(Alignment.CenterVertically).weight(1f),
+                    text = appSetting.displayName,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 16.sp,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -447,5 +434,14 @@ fun AppSettingListItemPreview() {
                 type = SettingType.APP
             ), DomainPersonalSettingDto()
         )
+    )
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xffffffff)
+fun CustomListItemPreview() {
+    CustomItem(
+        title = "로그아웃",
+        icon = painterResource(R.drawable.ic_sign_out)
     )
 }

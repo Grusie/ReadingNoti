@@ -52,7 +52,10 @@ fun TwoButtonAlertDialog(
 ) {
     if (isShowDialog) {
         AlertDialog(
-            onDismissRequest = { onDismiss?.invoke() },
+            onDismissRequest = {
+                onClickCancel.invoke()
+                onDismiss?.invoke()
+            },
             title = {
                 Text(
                     text = title,

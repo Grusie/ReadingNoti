@@ -5,6 +5,7 @@ import com.grusie.domain.data.DomainMsgData
 
 fun LocalMsgEntity.toDomain(): DomainMsgData {
     return DomainMsgData(
+        id = this.id,
         menuId = this.menuId,
         title = this.title,
         subTitle = this.subTitle,
