@@ -75,7 +75,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
             val personalSettingList = snapShot.map { doc ->
                 val menuId = doc.getLong(ServerKey.PersonalSetting.KEY_MENU_ID)?.toInt() ?: -1
                 val isEnabled = doc.getBoolean(ServerKey.PersonalSetting.KEY_ENABLED) ?: false
-                val customData = doc.getString(ServerKey.PersonalSetting.KEY_CUSTOM_DATA)
+                val jsonCustomData = doc.getString(ServerKey.PersonalSetting.KEY_CUSTOM_DATA)
                 val type =
                     doc.getString(ServerKey.PersonalSetting.KEY_TYPE) ?: SettingType.GENERAL.name
 
@@ -83,7 +83,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
                     menuId = menuId,
                     type = SettingType.from(type),
                     isEnabled = isEnabled,
-                    customData = customData
+                    jsonCustomData = jsonCustomData
                 )
             }
 
@@ -111,7 +111,8 @@ class TotalSettingDataSourceImpl @Inject constructor(
                         mapOf(
                             ServerKey.PersonalSetting.KEY_MENU_ID to setting.menuId,
                             ServerKey.PersonalSetting.KEY_ENABLED to setting.isEnabled,
-                            ServerKey.PersonalSetting.KEY_CUSTOM_DATA to setting.customData
+                            ServerKey.PersonalSetting.KEY_CUSTOM_DATA to setting.customData,
+                            ServerKey.TotalSetting.APP.KEY_PACKAGE to setting.packageName
                         )
                     ).await()
             }
@@ -129,7 +130,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
             if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             val docName =
-                if(domainTotalSettingDto.type == SettingType.GENERAL) {
+                if (domainTotalSettingDto.type == SettingType.GENERAL) {
                     TotalMenu.from(domainTotalSettingDto.menuId)?.name
                         ?: throw CommonException.DataMatchingError
                 } else {
@@ -218,7 +219,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
 
     override suspend fun deleteTotalSettingList(domainTotalSettingDocNameList: List<String>): Result<Unit> {
         return try {
-            if(!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
+            if (!networkChecker.isNetworkAvailable()) throw CommonException.NetworkError
 
             domainTotalSettingDocNameList.forEach {
                 firestore
@@ -229,7 +230,7 @@ class TotalSettingDataSourceImpl @Inject constructor(
             }
 
             Result.success(Unit)
-        } catch (e:Exception) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

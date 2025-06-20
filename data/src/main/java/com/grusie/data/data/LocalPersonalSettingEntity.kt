@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class LocalPersonalSettingEntity(
     @PrimaryKey val menuId: Int = -1,
     val isEnabled: Boolean = false,
-    val customData: String? = null
+    val jsonCustomData: String? = null,
+    val packageName: String? = null
 )

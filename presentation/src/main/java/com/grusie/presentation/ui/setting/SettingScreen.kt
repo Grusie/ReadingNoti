@@ -17,11 +17,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,6 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.grusie.core.appSetting.AppPackageEnum
+import com.grusie.core.appSetting.AppSettingFieldModel
+import com.grusie.core.appSetting.BaseAppSetting
+import com.grusie.core.appSetting.KakaoAppSetting
+import com.grusie.core.appSetting.KakaoAppSettingData
 import com.grusie.core.common.SettingType
 import com.grusie.core.utils.LogType
 import com.grusie.domain.data.DomainPersonalSettingDto
@@ -55,11 +66,13 @@ import com.grusie.presentation.ui.base.BaseUiState
 import com.grusie.presentation.ui.common.CircleProgressBar
 import com.grusie.presentation.ui.common.CommonAppIcon
 import com.grusie.presentation.ui.common.CommonSwitch
+import com.grusie.presentation.ui.common.CommonTextField
 import com.grusie.presentation.ui.common.CommonTitleBar
 import com.grusie.presentation.ui.common.OneButtonAlertDialog
 import com.grusie.presentation.utils.getErrorMsg
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     navController: NavHostController,
@@ -75,7 +88,7 @@ fun SettingScreen(
     var errorMsg by remember { mutableStateOf("") }
     val settingMergedList = viewModel.settingMergedList.collectAsState().value
     var isShowErrorDialog by remember { mutableStateOf(false) }
-    val settingSwitchStates by viewModel.settingSwitchStates.collectAsState()
+    //val settingSwitchStates by viewModel.settingSwitchStates.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.eventState.collect { eventState ->
@@ -126,12 +139,14 @@ fun SettingScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            val firstAppSettingIndex = settingMergedList.indexOfFirst { it.totalSetting.type == SettingType.APP }
+            val firstAppSettingIndex =
+                settingMergedList.indexOfFirst { it.totalSetting.type == SettingType.APP }
+            val selectedAppItem = viewModel.selectedAppItem.collectAsState().value
+            val isBottomSheetVisible = viewModel.isBottomSheetVisible.collectAsState().value
 
             LazyColumn() {
                 itemsIndexed(settingMergedList) { index, settingItem ->
-                    val isRadioSelected =
-                        settingSwitchStates[settingItem.totalSetting.menuId] ?: false
+                    val isRadioSelected = settingItem.personalSetting?.isEnabled ?: false
 
                     if (settingItem.totalSetting.type == SettingType.APP) {
                         if (index == firstAppSettingIndex) {
@@ -154,7 +169,29 @@ fun SettingScreen(
                             )
                         }
 
-                        AppSettingListItem(viewModel, settingItem, isRadioSelected)
+                        AppSettingListItem(viewModel, settingItem, isRadioSelected) {
+                            settingItem.personalSetting?.let { personalSetting ->
+                                var customData = personalSetting.customData
+                                if (customData == null) {
+                                    customData = when (AppPackageEnum.from(
+                                        settingItem.totalSetting.packageName ?: ""
+                                    )) {
+                                        AppPackageEnum.KAKAO -> {
+                                            KakaoAppSetting(KakaoAppSettingData(true))
+                                        }
+
+                                        else -> {
+                                            null
+                                        }
+                                    }
+                                }
+
+                                customData?.let {
+                                    viewModel.setSelectedAppPersonalSetting(personalSetting)
+                                    viewModel.onSettingClick(SettingType.APP, it)
+                                }
+                            }
+                        }
 
                     } else {
                         TotalSettingListItem(viewModel, settingItem, isRadioSelected)
@@ -166,6 +203,19 @@ fun SettingScreen(
                             thickness = 1.dp,
                         )
                     }
+                }
+            }
+
+
+            if (isBottomSheetVisible) {
+                selectedAppItem?.let {
+                    AppSettingBottomSheet(
+                        onDismiss = { viewModel.setBottomDialogVisible(false) },
+                        appSetting = it,
+                        onDataChanged = { fieldEnum, value ->
+                            viewModel.onChangedAppDetailSetting(fieldEnum, value)
+                        }
+                    )
                 }
             }
 
@@ -208,7 +258,7 @@ fun CustomItem(
                 .fillMaxWidth()
                 .padding(start = 8.dp)
         ) {
-            if(icon != null) {
+            if (icon != null) {
                 Icon(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     painter = icon,
@@ -231,7 +281,7 @@ fun CustomItem(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if(description.isNotEmpty()) {
+                if (description.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
@@ -272,7 +322,8 @@ fun TotalSettingListItem(
 
     if (totalSetting.type == SettingType.GENERAL) {
         // 앱에 정의되어 있지 않은 설정 값일 경우 화면에 표시하지 않는다.
-        totalAppSettingEnum = mergedSetting.totalSetting.toUi().totalAppSettingEnum ?: run { return }
+        totalAppSettingEnum =
+            mergedSetting.totalSetting.toUi().totalAppSettingEnum ?: run { return }
     }
 
     val settingMenu = totalAppSettingEnum!!.settingMenu
@@ -332,7 +383,10 @@ fun TotalSettingListItem(
                         isChecked = isRadioSelected,
                         onCheckedChanged = {
                             scope.launch {
-                                viewModel?.onSettingRadioButtonChanged(totalAppSettingEnum.menuId, !isRadioSelected)
+                                viewModel?.onSettingRadioButtonChanged(
+                                    totalAppSettingEnum.menuId,
+                                    !isRadioSelected
+                                )
                             }
                         }
                     )
@@ -347,7 +401,8 @@ fun TotalSettingListItem(
 fun AppSettingListItem(
     viewModel: SettingViewModel? = null,
     mergedSetting: MergedSetting,
-    isRadioSelected: Boolean = false
+    isRadioSelected: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
     val appSetting = mergedSetting.totalSetting
     val personalSetting = mergedSetting.personalSetting
@@ -357,6 +412,7 @@ fun AppSettingListItem(
     if (appSetting.isVisible) {
         Box(
             modifier = Modifier
+                .clickable { onClick() }
                 .padding(vertical = 8.dp, horizontal = 12.dp)
                 .defaultMinSize(minHeight = 50.dp)
                 .fillMaxWidth(),
@@ -377,7 +433,9 @@ fun AppSettingListItem(
                 Spacer(Modifier.width(8.dp))
 
                 Text(
-                    modifier = Modifier.align(Alignment.CenterVertically).weight(1f),
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .weight(1f),
                     text = appSetting.displayName,
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -402,6 +460,164 @@ fun AppSettingListItem(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppSettingBottomSheet(
+    onDismiss: () -> Unit,
+    appSetting: BaseAppSetting,
+    onDataChanged: (AppSettingFieldModel, Any) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss()
+        },
+        sheetState = sheetState
+    ) {
+        LazyColumn() {
+            when (appSetting) {
+                is KakaoAppSetting -> {
+                    item {
+                        ModifyAppSettingBooleanItem(
+                            appSettingFieldModel = KakaoAppSetting.KakaoAppSettingField.QuiteTtsEnabled,
+                            isChecked = appSetting.isQuietTtsEnabled,
+                            onValueChanged = {
+                                onDataChanged(
+                                    KakaoAppSetting.KakaoAppSettingField.QuiteTtsEnabled,
+                                    it
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+            item { Spacer(modifier = Modifier.height(LocalConfiguration.current.screenHeightDp.dp * 0.2f)) }
+        }
+    }
+}
+
+@Composable
+fun ModifyAppSettingStringItem(
+    appSettingFieldModel: AppSettingFieldModel,
+    content: String,
+    onValueChanged: (String) -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = appSettingFieldModel.title,
+                    fontSize = 14.sp,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Text(
+                text = appSettingFieldModel.description,
+                fontSize = 12.sp,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+            CommonTextField(
+                value = content,
+                onValueChanged = { contents -> onValueChanged(contents) },
+                singleLine = false,
+                isTrailingVisible = content.isNotEmpty(),
+                trailIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "refresh",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                trailButtonClick = {
+                    onValueChanged("")
+                },
+                hint = appSettingFieldModel.title
+            )
+        }
+    }
+}
+
+@Composable
+fun ModifyAppSettingBooleanItem(
+    appSettingFieldModel: AppSettingFieldModel,
+    isChecked: Boolean,
+    onValueChanged: (Boolean) -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .align(Alignment.CenterVertically)
+        ) {
+
+            Row() {
+                Text(
+                    text = appSettingFieldModel.title,
+                    fontSize = 14.sp,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            Text(
+                text = appSettingFieldModel.description,
+                fontSize = 12.sp,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            )
+        }
+
+        CommonSwitch(
+            modifier = Modifier.align(Alignment.CenterVertically),
+            isChecked = isChecked,
+            onCheckedChanged = {
+                onValueChanged(it)
+            })
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+fun ModifyAppSettingBooleanItemPreview() {
+    ModifyAppSettingBooleanItem(
+        appSettingFieldModel = KakaoAppSetting.KakaoAppSettingField.QuiteTtsEnabled,
+        isChecked = true
+    ) {}
+}
+
+@Composable
+@Preview(showBackground = true)
+fun ModifyAppSettingStringItemPreview() {
+    ModifyAppSettingStringItem(
+        appSettingFieldModel = KakaoAppSetting.KakaoAppSettingField.QuiteTtsEnabled,
+        content = "텍스트 입니다."
+    ) {}
 }
 
 @Composable

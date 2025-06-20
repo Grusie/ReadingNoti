@@ -1,13 +1,17 @@
 package com.grusie.readingnoti.service
 
 import android.app.Notification
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import androidx.core.content.ContextCompat
 import com.grusie.core.common.TotalMenu
 import com.grusie.core.utils.LoggerInterface
 import com.grusie.domain.data.DomainPersonalSettingDto
+import com.grusie.domain.data.tts.NotificationData
 import com.grusie.presentation.data.setting.MergedSetting
 import com.grusie.presentation.utils.SettingObserveManager
 import com.grusie.readingnoti.di.NotiRecvServiceEntryPoint
@@ -75,10 +79,10 @@ class NotificationReceiverService : NotificationListenerService() {
         // 알림 수집 설정이 꺼져있다면 리턴
         if (!isCollectNotiEnabled) return
 
-        sbn?.packageName?.let { pn ->
+        sbn?.packageName?.let { packageName ->
             var currentAppSetting: DomainPersonalSettingDto? = null
             for (mergedAppSetting in currentAppSettings.values) {
-                if (mergedAppSetting.totalSetting.packageName == pn) {
+                if (mergedAppSetting.totalSetting.packageName == packageName) {
                     currentAppSetting = mergedAppSetting.personalSetting
                     break
                 }
@@ -95,6 +99,21 @@ class NotificationReceiverService : NotificationListenerService() {
                 "Using Notification Data : ${sbn.notification?.extras.toString()}"
             )
 
+            val importance = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channelId = sbn.notification.channelId
+                val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                manager.getNotificationChannel(channelId)?.importance
+                    ?: NotificationManager.IMPORTANCE_DEFAULT
+            } else {
+                when (sbn.notification.priority) {
+                    Notification.PRIORITY_MAX, Notification.PRIORITY_HIGH -> NotificationManager.IMPORTANCE_HIGH
+                    Notification.PRIORITY_DEFAULT -> NotificationManager.IMPORTANCE_DEFAULT
+                    Notification.PRIORITY_LOW -> NotificationManager.IMPORTANCE_LOW
+                    Notification.PRIORITY_MIN -> NotificationManager.IMPORTANCE_MIN
+                    else -> NotificationManager.IMPORTANCE_DEFAULT
+                }
+            }
+
             val intent = Intent(this, MainService::class.java).apply {
                 val notificationExtras = sbn.notification.extras
 
@@ -102,11 +121,18 @@ class NotificationReceiverService : NotificationListenerService() {
                 val subTitle = notificationExtras?.getString(Notification.EXTRA_SUB_TEXT) ?: ""
                 val content = notificationExtras?.getString(Notification.EXTRA_TEXT) ?: ""
 
-                putExtra(MainService.EXTRA_NOTIFICATION_TITLE, title)
-                putExtra(MainService.EXTRA_NOTIFICATION_SUB_TITLE, subTitle)
-                putExtra(MainService.EXTRA_NOTIFICATION_CONTENT, content)
-                putExtra(MainService.EXTRA_NOTI_TYPE_ID, currentAppSetting.menuId)
-                putExtra(MainService.EXTRA_NOTIFICATION_TIME_STAMP, System.currentTimeMillis())
+                val notificationData = NotificationData(
+                    notiMenuId = currentAppSetting.menuId,
+                    packageName = packageName,
+                    importance = importance,
+                    channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) sbn.notification.channelId else "",
+                    title = title,
+                    subTitle = subTitle,
+                    content = content,
+                    timeStamp = System.currentTimeMillis()
+                )
+
+                putExtra(MainService.EXTRA_NOTIFICATION_DATA, notificationData)
             }
 
             ContextCompat.startForegroundService(this, intent)
@@ -140,7 +166,8 @@ class NotificationReceiverService : NotificationListenerService() {
         generalSettingJob = serviceScope.launch {
             SettingObserveManager.mergedGeneralSettingMap.collect { generalSettingMap ->
                 currentGeneralSettings = generalSettingMap
-                isCollectNotiEnabled = generalSettingMap[TotalMenu.COLLECT_NOTI_ENABLED.menuId]?.personalSetting?.isEnabled == true
+                isCollectNotiEnabled =
+                    generalSettingMap[TotalMenu.COLLECT_NOTI_ENABLED.menuId]?.personalSetting?.isEnabled == true
 
                 logger.d(
                     "${this@NotificationReceiverService::class.simpleName}",

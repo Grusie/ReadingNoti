@@ -6,5 +6,6 @@ data class PersonalSettingDto(
     val menuId: Int = -1,
     val type: SettingType = SettingType.GENERAL,
     val isEnabled: Boolean = false,
-    val customData: String? = null
+    val jsonCustomData: String? = null,
+    val packageName: String? = null
 )

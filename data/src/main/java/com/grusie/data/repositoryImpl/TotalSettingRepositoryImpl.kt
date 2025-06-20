@@ -1,5 +1,6 @@
 package com.grusie.data.repositoryImpl
 
+import com.grusie.core.appSetting.AppPackageEnum
 import com.grusie.core.common.ServerKey
 import com.grusie.core.common.SettingType
 import com.grusie.core.utils.LogType
@@ -28,7 +29,8 @@ class TotalSettingRepositoryImpl @Inject constructor(
             totalSettingDataSource.getTotalSettingList(type)
                 .map { totalSettingList ->
                     // 서버에서 가져온 TotalSettingList 중 로컬의 PersonalSettingList에 없는 것이 있을 경우 값 저장
-                    val localPersonalSettingList = localTotalSettingDataSource.getPersonalSettingList().toMutableList()
+                    val localPersonalSettingList =
+                        localTotalSettingDataSource.getPersonalSettingList().toMutableList()
 
                     val localPersonalSettingMap = localPersonalSettingList.associateBy { it.menuId }
                     val totalSettingMap = totalSettingList.associateBy { it.menuId }
@@ -41,12 +43,12 @@ class TotalSettingRepositoryImpl @Inject constructor(
                         totalSettingMap[deleteSettingItem.menuId] == null
                     }
 
-                    if(missingSettings.isNotEmpty()) {
+                    if (missingSettings.isNotEmpty()) {
                         missingSettings.forEach { totalItem ->
                             val defaultPersonalSetting = LocalPersonalSettingEntity(
                                 menuId = totalItem.menuId,
                                 isEnabled = totalItem.isInitEnabled,
-                                customData = null
+                                jsonCustomData = null
                             )
 
                             localPersonalSettingList.add(defaultPersonalSetting)
@@ -54,7 +56,7 @@ class TotalSettingRepositoryImpl @Inject constructor(
                         saveLocalPersonalSettingList(localPersonalSettingList)
                     }
 
-                    if(deleteSettings.isNotEmpty()) {
+                    if (deleteSettings.isNotEmpty()) {
                         deletePersonalTotalSettingList(deleteSettings.map { it.menuId })
                     }
 
@@ -104,7 +106,10 @@ class TotalSettingRepositoryImpl @Inject constructor(
             LocalPersonalSettingEntity(
                 menuId = it.menuId,
                 isEnabled = it.isInitEnabled,
-                customData = null
+                jsonCustomData = it.packageName?.let {
+                    AppPackageEnum.getAppSettingJson(it)
+                },
+                packageName = it.packageName
             )
         }
 
@@ -235,10 +240,12 @@ class TotalSettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun observeTotalSettings(): Flow<List<DomainTotalSettingDto>> {
-        return localTotalSettingDataSource.observeTotalSettings().map { list -> list.map { it.toDomain() } }
+        return localTotalSettingDataSource.observeTotalSettings()
+            .map { list -> list.map { it.toDomain() } }
     }
 
     override suspend fun observePersonalSettings(): Flow<List<DomainPersonalSettingDto>> {
-        return localTotalSettingDataSource.observePersonalSettings().map { list -> list.map { it.toDomain() } }
+        return localTotalSettingDataSource.observePersonalSettings()
+            .map { list -> list.map { it.toDomain() } }
     }
 }

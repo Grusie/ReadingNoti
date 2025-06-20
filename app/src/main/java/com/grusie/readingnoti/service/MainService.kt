@@ -8,6 +8,8 @@ import android.os.IBinder
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import androidx.core.app.NotificationCompat
+import com.grusie.core.appSetting.AppPackageEnum
+import com.grusie.core.appSetting.KakaoAppSetting
 import com.grusie.core.common.TotalMenu
 import com.grusie.core.utils.LoggerInterface
 import com.grusie.domain.data.DomainMsgData
@@ -35,15 +37,10 @@ import java.util.Locale
  */
 class MainService : Service(), TextToSpeech.OnInitListener {
     companion object {
-        const val EXTRA_NOTI_TYPE_ID = "extra_noti_type_id"
-        const val EXTRA_NOTIFICATION_TITLE = "extra_notification_title"
-        const val EXTRA_NOTIFICATION_SUB_TITLE = "extra_notification_sub_title"
-        const val EXTRA_NOTIFICATION_CONTENT = "extra_notification_content"
-        const val EXTRA_NOTIFICATION_TIME_STAMP = "extra_notification_time_stamp"
+        const val EXTRA_NOTIFICATION_DATA = "extra_notification_data"
     }
 
     private lateinit var tts: TextToSpeech      // TTS 객체
-    private var notiTypeId: Int? = null     // 알림 타입(카카오톡, 인스타 그램 등)의 아이디
     private var notificationData: NotificationData? = null
     private var notiBuilder: NotificationCompat.Builder? = null
     private var notiManager: NotificationManager? = null
@@ -63,7 +60,10 @@ class MainService : Service(), TextToSpeech.OnInitListener {
     override fun onCreate() {
         super.onCreate()
 
-        val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainServiceEntryPoint::class.java)
+        val entryPoint = EntryPointAccessors.fromApplication(
+            applicationContext,
+            MainServiceEntryPoint::class.java
+        )
         logger = entryPoint.logger()
         msgDataUseCases = entryPoint.msgDataUseCases()
 
@@ -81,36 +81,33 @@ class MainService : Service(), TextToSpeech.OnInitListener {
 
         startForeground(NotificationUtil.TTS_SERVICE_ID, notiBuilder?.build())
 
-        notiTypeId = intent?.getIntExtra(EXTRA_NOTI_TYPE_ID, -1) ?: -1
-        if(notiTypeId == -1) {
+        notificationData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent?.getSerializableExtra(EXTRA_NOTIFICATION_DATA, NotificationData::class.java)
+        } else {
+            intent?.getSerializableExtra(EXTRA_NOTIFICATION_DATA) as? NotificationData
+        }
+
+        if (notificationData == null) {
             return START_NOT_STICKY
         }
 
-        val title = intent?.getStringExtra(EXTRA_NOTIFICATION_TITLE) ?: ""
-        val subTitle = intent?.getStringExtra(EXTRA_NOTIFICATION_SUB_TITLE) ?: ""
-        val content = intent?.getStringExtra(EXTRA_NOTIFICATION_CONTENT) ?: ""
-        val timeStamp = intent?.getLongExtra(EXTRA_NOTIFICATION_TIME_STAMP, 0) ?: 0
-
         serviceScope.launch {
-            if(content.isNotEmpty()) {
+            if (notificationData!!.content.isNotEmpty()) {
                 // 넘어온 알림은 알림 수집 기능이 켜져있는 경우일 때 뿐이므로 알림 저장
                 msgDataUseCases.saveMsgDataUseCase(
                     DomainMsgData(
-                        menuId = notiTypeId!!,
-                        title = title,
-                        subTitle = subTitle,
-                        content = content,
-                        timeStamp = timeStamp
+                        menuId = notificationData!!.notiMenuId,
+                        title = notificationData!!.title,
+                        subTitle = notificationData!!.subTitle,
+                        content = notificationData!!.content,
+                        timeStamp = notificationData!!.timeStamp
                     )
                 )
             }
         }
 
-        if(currentGeneralSettings[TotalMenu.TTS_ENABLED.menuId]?.personalSetting?.isEnabled == true) {
+        if (isEnableTts()) {
             // TTS 읽기 기능이 켜져 있을 때에만 알림을 읽도록 처리
-            notificationData =
-                NotificationData(notiTypeId!!, title, subTitle, content, TTS_STATE.NONE)
-
             if (!::tts.isInitialized) {
                 try {
                     tts = TextToSpeech(this, this)
@@ -129,9 +126,9 @@ class MainService : Service(), TextToSpeech.OnInitListener {
     }
 
     private fun speakNotification() {
-        if (notificationData == null || notiTypeId == null || isSpeaking) return
+        if (notificationData == null || isSpeaking) return
 
-        TTSUtil.speakContent(tts, notiTypeId!!, notificationData!!.content)
+        TTSUtil.speakContent(tts, notificationData!!.notiMenuId, notificationData!!.content)
 
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(p0: String?) {
@@ -154,11 +151,49 @@ class MainService : Service(), TextToSpeech.OnInitListener {
             val result = tts.setLanguage(Locale.KOREA)
 
             if (result == TextToSpeech.LANG_NOT_SUPPORTED || result == TextToSpeech.LANG_MISSING_DATA) {
-                logger.e("${this.javaClass.simpleName}, TTS onInit Error", "Language is Not Supported")
+                logger.e(
+                    "${this.javaClass.simpleName}, TTS onInit Error",
+                    "Language is Not Supported"
+                )
             } else {
                 speakNotification()
             }
         }
+    }
+
+    private fun isEnableTts(): Boolean {
+        if (notificationData == null) return false
+
+        val personalSetting =
+            currentAppSettings[notificationData!!.notiMenuId]?.personalSetting ?: return false
+
+        // 알림 설정이 되어있는 앱일 경우
+        val isTtsEnabled =
+            currentGeneralSettings[TotalMenu.TTS_ENABLED.menuId]?.personalSetting?.isEnabled == true
+        if (!isTtsEnabled) return false
+
+        // 패키지명으로 한 번 더 구분하여 해당 아이템의 특정 설정으로 인해 꺼져있는지 확인
+        when (AppPackageEnum.from(notificationData!!.packageName)) {
+            AppPackageEnum.KAKAO -> {
+                // 카카오톡일 경우
+                val kakaoAppSetting = personalSetting.customData as? KakaoAppSetting ?: return true
+
+                if (!kakaoAppSetting.isQuietTtsEnabled) {
+                    // 알림을 꺼둔 채팅방의 tts를 허용하지 않을 경우에는 false를 리턴
+                    if (notificationData!!.channel == KakaoAppSetting.QUIET_MSG_CHANNEL) {
+
+                        // 알림을 꺼둔 채팅방도 Head up Noti가 온다면(키워드 알림, 언급 등) true를 리턴하도록 처리
+                        return notificationData!!.importance >= NotificationManager.IMPORTANCE_HIGH
+                    }
+                }
+            }
+
+            else -> {
+                return true
+            }
+        }
+
+        return true
     }
 
     private fun observeAppSettings() {

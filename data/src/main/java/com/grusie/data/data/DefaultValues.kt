@@ -9,7 +9,7 @@ object DefaultValues {
     // 전체 설정이 변경 될 경우 앱 업데이트를 진행해야 제대로 적용 됨
     val initLocalTotalSettingList: List<LocalTotalSettingEntity> = listOf(
         LocalTotalSettingEntity(
-            description = "알림 수집을 키거나 끌 수 있습니다.(알림 수집을 허용 하지 않으면, 알림 저장 및 TTS가 동작하지 않습니다.",
+            description = "알림 수집을 키거나 끌 수 있습니다.(해제 시, 알림 저장 및 TTS가 동작하지 않습니다.)",
             displayName = "알림 수집",
             isInitEnabled = false,
             isVisible = true,
@@ -53,13 +53,4 @@ object DefaultValues {
             docName = TotalMenu.BOOT_ENABLED.name
         )
     )
-
-    // 개인 설정 리스트(기본 설정 리스트를 기준으로 개인이 설정하는 리스트를 임의로 생성)
-    val initPersonalSettingList: List<LocalPersonalSettingEntity> = initLocalTotalSettingList.map {
-        LocalPersonalSettingEntity(
-            menuId = it.menuId,
-            isEnabled = it.isInitEnabled,
-            customData = null
-        )
-    }
 }

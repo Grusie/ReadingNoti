@@ -3,6 +3,11 @@ package com.grusie.presentation.ui.setting
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.grusie.core.appSetting.AppPackageEnum
+import com.grusie.core.appSetting.AppSettingFieldModel
+import com.grusie.core.appSetting.BaseAppSetting
+import com.grusie.core.appSetting.KakaoAppSetting
+import com.grusie.core.common.SettingType
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.usecase.storage.StorageUseCases
 import com.grusie.domain.usecase.totalSetting.TotalSettingUseCases
@@ -29,12 +34,17 @@ class SettingViewModel @Inject constructor(
     private val storageUseCases: StorageUseCases,
     val auth: FirebaseAuth
 ) : BaseViewModel() {
-    private val _settingSwitchStates = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
-    val settingSwitchStates: StateFlow<Map<Int, Boolean>> = _settingSwitchStates.asStateFlow()
-
     private val _settingMergedList: MutableStateFlow<List<MergedSetting>> =
         MutableStateFlow(emptyList())
     val settingMergedList: StateFlow<List<MergedSetting>> = _settingMergedList.asStateFlow()
+
+    private val _selectedAppItem: MutableStateFlow<BaseAppSetting?> = MutableStateFlow(null)
+    val selectedAppItem: StateFlow<BaseAppSetting?> = _selectedAppItem.asStateFlow()
+
+    private var selectedAppPersonalSetting: DomainPersonalSettingDto? = null
+
+    private val _isBottomSheetVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isBottomSheetVisible: StateFlow<Boolean> = _isBottomSheetVisible.asStateFlow()
 
     init {
         requestTotalSettingList()
@@ -54,19 +64,14 @@ class SettingViewModel @Inject constructor(
             val totalSettingMap = totalSettingList.associateBy { it.menuId }
             val personalSettingMap = personalSettingList.associateBy { it.menuId }
 
-            val newSwitchStates = mutableMapOf<Int, Boolean>()
-
             val mergedList = totalSettingMap.map { (menuId, totalSetting) ->
                 val personalSetting = personalSettingMap[menuId]
-
-                newSwitchStates[menuId] = personalSetting?.isEnabled ?: totalSetting.isInitEnabled
 
                 MergedSetting(
                     totalSetting = totalSetting,
                     personalSetting = personalSetting
                 )
             }
-            _settingSwitchStates.emit(newSwitchStates)
 
             setUiState(BaseUiState.Idle)
 
@@ -85,28 +90,108 @@ class SettingViewModel @Inject constructor(
     ) {
         setUiState(BaseUiState.Loading)
 
-        totalSettingUseCases.changeSettingInfoUseCase(
-            auth.currentUser?.uid,
-            DomainPersonalSettingDto(menuId = menuId, isEnabled = isSelected)
-        )
-        _settingSwitchStates.update {
-            _settingSwitchStates.value.toMutableMap().apply {
-                this[menuId] = isSelected
+        var updatedSetting: DomainPersonalSettingDto? = null
+
+        _settingMergedList.update { list ->
+            list.map { item ->
+                if (item.totalSetting.menuId == menuId) {
+                    val updatedPersonal = item.personalSetting?.copy(isEnabled = isSelected)
+                    if (updatedPersonal != null) {
+                        updatedSetting = updatedPersonal
+                    }
+                    item.copy(personalSetting = updatedPersonal)
+                } else item
             }
         }
+
+        updatedSetting?.let {
+            totalSettingUseCases.changeSettingInfoUseCase(
+                auth.currentUser?.uid,
+                it
+            )
+        }
+
         setUiState(BaseUiState.Idle)
     }
 
-    suspend fun onSettingClick(totalAppSetting: TOTAL_APP_SETTING) {
+    private fun onGeneralSettingClick(totalAppSetting: TOTAL_APP_SETTING) {
         when (totalAppSetting) {
             TOTAL_APP_SETTING.COLLECT_NOTI_ENABLED -> {}
             TOTAL_APP_SETTING.FOCUS_MODE -> {}
             TOTAL_APP_SETTING.BOOT_ENABLED -> {}
+            TOTAL_APP_SETTING.TTS_ENABLED -> {}
+            else -> {}
+        }
+    }
+
+    private fun onAppSettingClick(appSetting: BaseAppSetting) {
+        _selectedAppItem.value = appSetting
+        setBottomDialogVisible(true)
+    }
+
+    fun onSettingClick(type: SettingType, data: Any) {
+        when(type) {
+            SettingType.GENERAL -> {
+                val totalAppSetting = (data as? TOTAL_APP_SETTING)
+                totalAppSetting?.let { onGeneralSettingClick(it) }
+            }
+
+            SettingType.APP -> {
+                val appSetting = (data as? BaseAppSetting)
+                appSetting?.let { onAppSettingClick(it) }
+            }
+        }
+    }
+
+    fun onChangedAppDetailSetting(appSettingFieldModel: AppSettingFieldModel, data: Any) {
+        selectedAppPersonalSetting?.let {
+            when(AppPackageEnum.from(it.packageName ?: "")) {
+                AppPackageEnum.KAKAO -> {
+                    when(appSettingFieldModel) {
+                        KakaoAppSetting.KakaoAppSettingField.QuiteTtsEnabled -> {
+                            _selectedAppItem.value = (_selectedAppItem.value as KakaoAppSetting).updateQuietTtsEnabled(data as Boolean)
+                        }
+                    }
+                }
+                else -> {
+                    return
+                }
+            }
+
+            selectedAppPersonalSetting = it.copy(customData = _selectedAppItem.value)
+        }
+
+        viewModelScope.launch {
+            setUiState(BaseUiState.Loading)
+
+            _settingMergedList.update { list ->
+                list.map { item ->
+                    if(item.personalSetting == selectedAppPersonalSetting) {
+                        item.copy(personalSetting = selectedAppPersonalSetting)
+                    } else item
+                }
+            }
+
+            selectedAppPersonalSetting?.let {
+                totalSettingUseCases.changeSettingInfoUseCase(
+                    auth.currentUser?.uid,
+                    it.copy(customData = _selectedAppItem.value)
+                )
+            }
+            setUiState(BaseUiState.Idle)
         }
     }
 
     fun signOut() {
         auth.signOut()
         setEventState(BaseEventState.Navigate(Routes.SPLASH, includeBackStack = true))
+    }
+
+    fun setSelectedAppPersonalSetting(selectedAppPersonalSetting: DomainPersonalSettingDto) {
+        this.selectedAppPersonalSetting = selectedAppPersonalSetting
+    }
+
+    fun setBottomDialogVisible(isVisible: Boolean) {
+        _isBottomSheetVisible.value = isVisible
     }
 }
