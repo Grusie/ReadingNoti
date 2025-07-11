@@ -9,6 +9,7 @@ import com.grusie.core.utils.NetworkChecker
 import com.grusie.data.data.PersonalSettingDto
 import com.grusie.data.data.TotalSettingDto
 import com.grusie.data.datasource.TotalSettingDataSource
+import com.grusie.data.mapper.getAppCustomDataJson
 import com.grusie.domain.data.CommonException
 import com.grusie.domain.data.DomainPersonalSettingDto
 import com.grusie.domain.data.DomainTotalSettingDto
@@ -105,13 +106,20 @@ class TotalSettingDataSourceImpl @Inject constructor(
                 .collection(CollectionKind.SUB_PERSONAL_SETTING_LIST)
 
             list.forEach { setting ->
+
+                val getAppCustomDataJson = setting.customData?.let {customData ->
+                    setting.packageName?.let { packageName ->
+                        getAppCustomDataJson(packageName, customData)
+                    }
+                }
+
                 collectionRef
                     .document(setting.menuId.toString())
                     .set(
                         mapOf(
                             ServerKey.PersonalSetting.KEY_MENU_ID to setting.menuId,
                             ServerKey.PersonalSetting.KEY_ENABLED to setting.isEnabled,
-                            ServerKey.PersonalSetting.KEY_CUSTOM_DATA to setting.customData,
+                            ServerKey.PersonalSetting.KEY_CUSTOM_DATA to getAppCustomDataJson,
                             ServerKey.TotalSetting.APP.KEY_PACKAGE to setting.packageName
                         )
                     ).await()

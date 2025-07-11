@@ -1,6 +1,8 @@
 package com.grusie.data.mapper
 
 import com.grusie.core.appSetting.AppPackageEnum
+import com.grusie.core.appSetting.AppPackageEnum.Companion.from
+import com.grusie.core.appSetting.AppPackageEnum.KAKAO
 import com.grusie.core.appSetting.BaseAppSetting
 import com.grusie.core.appSetting.KakaoAppSetting
 import com.grusie.core.appSetting.KakaoAppSettingData
@@ -64,7 +66,7 @@ fun LocalPersonalSettingEntity.toDomain(): DomainPersonalSettingDto {
         isEnabled = this.isEnabled,
         customData = jsonCustomData?.let { jsonCustomData ->
             packageName?.let { packageName ->
-                getCustomData(packageName, jsonCustomData)
+                getAppCustomData(packageName, jsonCustomData)
             }
         },
         packageName = this.packageName
@@ -78,7 +80,7 @@ fun PersonalSettingDto.toDomain(): DomainPersonalSettingDto {
         customData =
         this.jsonCustomData?.let { jsonCustomData ->
             this.packageName?.let { packageName ->
-                getCustomData(packageName, jsonCustomData)
+                getAppCustomData(packageName, jsonCustomData)
             }
         },
         packageName = this.packageName
@@ -89,7 +91,8 @@ fun PersonalSettingDto.toLocal(): LocalPersonalSettingEntity {
     return LocalPersonalSettingEntity(
         menuId = this.menuId,
         isEnabled = this.isEnabled,
-        jsonCustomData = this.jsonCustomData
+        jsonCustomData = this.jsonCustomData,
+        packageName = this.packageName
     )
 }
 
@@ -97,13 +100,18 @@ fun DomainPersonalSettingDto.toLocal(): LocalPersonalSettingEntity {
     return LocalPersonalSettingEntity(
         menuId = this.menuId,
         isEnabled = this.isEnabled,
-        jsonCustomData = Json.encodeToString(this.customData)
+        jsonCustomData = this.customData?.let { customData ->
+            this.packageName?.let {packageName ->
+                getAppCustomDataJson(packageName, customData)
+            }
+        },
+        packageName = this.packageName
     )
 }
 
-fun getCustomData(packageName: String, jsonCustomData: String): BaseAppSetting? {
+fun getAppCustomData(packageName: String, jsonCustomData: String): BaseAppSetting? {
     return when (AppPackageEnum.from(packageName)) {
-        AppPackageEnum.KAKAO -> {
+        KAKAO -> {
             try {
                 KakaoAppSetting(Json.decodeFromString<KakaoAppSettingData>(jsonCustomData))
             } catch (e: Exception) {
@@ -113,5 +121,35 @@ fun getCustomData(packageName: String, jsonCustomData: String): BaseAppSetting? 
         }
 
         else -> null
+    }
+}
+
+
+fun getAppCustomDataJson(packageName: String, baseAppSetting: BaseAppSetting?): String? {
+    val json = Json {
+        encodeDefaults = true
+    }
+
+    var parsingData = baseAppSetting?.parsingData
+
+    when (from(packageName)) {
+        KAKAO -> {
+            if (parsingData == null) {
+                parsingData = KakaoAppSettingData()
+            }
+            return try {
+                json.encodeToString(parsingData as KakaoAppSettingData)
+            } catch (e: Exception) {
+                LoggerProvider.logger.e(
+                    "AppPackageEnum getAppSettingJson Error",
+                    "${e.message}"
+                )
+                null
+            }
+        }
+
+        else -> {
+            return null
+        }
     }
 }

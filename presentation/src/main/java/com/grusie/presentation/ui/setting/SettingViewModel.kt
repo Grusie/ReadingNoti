@@ -166,7 +166,7 @@ class SettingViewModel @Inject constructor(
 
             _settingMergedList.update { list ->
                 list.map { item ->
-                    if(item.personalSetting == selectedAppPersonalSetting) {
+                    if(item.personalSetting?.menuId == selectedAppPersonalSetting?.menuId) {
                         item.copy(personalSetting = selectedAppPersonalSetting)
                     } else item
                 }

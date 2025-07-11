@@ -1,16 +1,15 @@
 package com.grusie.core.appSetting
 
-import kotlinx.serialization.Serializable
-
 /**
  * 카카오에만 해당하는 설정
  */
-@Serializable
-class KakaoAppSetting(private val kakaoAppSettingData: KakaoAppSettingData) : BaseAppSetting() {
-    val isQuietTtsEnabled: Boolean get() = kakaoAppSettingData.isQuietTtsEnabled
+class KakaoAppSetting(
+    override val parsingData: KakaoAppSettingData
+) : BaseAppSetting() {
+    val isQuietTtsEnabled: Boolean get() = parsingData.isQuietTtsEnabled
 
     fun updateQuietTtsEnabled(newValue: Boolean): KakaoAppSetting {
-        return KakaoAppSetting(kakaoAppSettingData.copy(isQuietTtsEnabled = newValue))
+        return KakaoAppSetting(parsingData.copy(isQuietTtsEnabled = newValue))
     }
 
     enum class KakaoAppSettingField(

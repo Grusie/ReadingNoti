@@ -1,6 +1,5 @@
 package com.grusie.data.repositoryImpl
 
-import com.grusie.core.appSetting.AppPackageEnum
 import com.grusie.core.common.ServerKey
 import com.grusie.core.common.SettingType
 import com.grusie.core.utils.LogType
@@ -9,6 +8,7 @@ import com.grusie.data.data.DefaultValues
 import com.grusie.data.data.LocalPersonalSettingEntity
 import com.grusie.data.datasource.LocalTotalSettingDataSource
 import com.grusie.data.datasource.TotalSettingDataSource
+import com.grusie.data.mapper.getAppCustomDataJson
 import com.grusie.data.mapper.toDomain
 import com.grusie.data.mapper.toLocal
 import com.grusie.domain.data.CommonException
@@ -107,7 +107,7 @@ class TotalSettingRepositoryImpl @Inject constructor(
                 menuId = it.menuId,
                 isEnabled = it.isInitEnabled,
                 jsonCustomData = it.packageName?.let {
-                    AppPackageEnum.getAppSettingJson(it)
+                    getAppCustomDataJson(it, null)
                 },
                 packageName = it.packageName
             )
